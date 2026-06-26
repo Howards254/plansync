@@ -1,0 +1,25 @@
+{
+  "name": "plansync",
+  "version": "0.1.0",
+  "description": "Coordination and accountability layer for AI-assisted development teams",
+  "bin": {
+    "plansync": "./bin/plansync.js"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@octokit/auth-oauth-device": "^8.0.0",
+    "@octokit/rest": "^21.0.0",
+    "commander": "^13.0.0",
+    "minimatch": "^10.2.5",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "dotenv": "^16.4.0",
+    "vitest": "^3.0.0"
+  },
+  "license": "MIT"
+}

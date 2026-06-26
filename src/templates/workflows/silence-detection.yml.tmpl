@@ -1,0 +1,92 @@
+name: Silence Detection
+on:
+  schedule:
+    - cron: '0 8 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for stalled tasks
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            // Read plan
+            let plan;
+            try {
+              plan = JSON.parse(fs.readFileSync('.plansync/plan.json', 'utf-8'));
+            } catch {
+              console.log('No plan found at .plansync/plan.json — skipping silence check.');
+              return;
+            }
+
+            const now = new Date();
+            const SILENCE_THRESHOLD_MS = 3 * 24 * 60 * 60 * 1000; // 3 days
+
+            for (const task of plan.tasks) {
+              if (task.status === 'done' || task.status === 'ready') continue;
+
+              // Check if there are any recent issue comments
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: task.issueNumber,
+                per_page: 5,
+                sort: 'created',
+                direction: 'desc',
+              });
+
+              // Get the last event on the issue
+              const { data: events } = await github.rest.issues.listEvents({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: task.issueNumber,
+                per_page: 5,
+              });
+
+              const latestActivity = [...comments, ...events]
+                .sort((a, b) => new Date(b.created_at || b.updated_at) - new Date(a.created_at || a.updated_at));
+
+              if (latestActivity.length === 0) continue;
+
+              const lastActive = new Date(latestActivity[0].created_at || latestActivity[0].updated_at);
+              const timeSinceActivity = now - lastActive;
+
+              if (timeSinceActivity > SILENCE_THRESHOLD_MS) {
+                const daysStalled = Math.floor(timeSinceActivity / (24 * 60 * 60 * 1000));
+                console.log(`Task ${task.id} (${task.title}) has been silent for ${daysStalled} days.`);
+
+                // Check if this task blocks others
+                const blockedTasks = plan.tasks.filter(t => t.dependencies && t.dependencies.includes(task.id));
+                if (blockedTasks.length > 0) {
+                  console.log(`  ⚠️ This task blocks: ${blockedTasks.map(t => t.id).join(', ')}`);
+                }
+
+                // Comment on the issue
+                if (task.issueNumber) {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: task.issueNumber,
+                    body: `⏰ This task has had no activity for ${daysStalled} days.` +
+                      (blockedTasks.length > 0
+                        ? ` It is blocking: ${blockedTasks.map(t => `**${t.id}**`).join(', ')}.`
+                        : ' Please provide an update on progress.'),
+                  });
+                  console.log(`  Commented on issue #${task.issueNumber}`);
+                }
+              } else {
+                const hoursSince = Math.floor(timeSinceActivity / (60 * 60 * 1000));
+                console.log(`Task ${task.id} — last activity ${hoursSince}h ago (within threshold)`);
+              }
+            }

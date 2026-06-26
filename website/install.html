@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Install — PlanSync</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/" class="logo">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <rect x="2" y="2" width="10" height="10" rx="2" fill="#6366f1"/>
+          <rect x="16" y="2" width="10" height="10" rx="2" fill="#6366f1" opacity="0.6"/>
+          <rect x="9" y="16" width="10" height="10" rx="2" fill="#6366f1" opacity="0.4"/>
+        </svg>
+        <span>PlanSync</span>
+      </a>
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="install.html">Install</a>
+        <a href="docs.html">Docs</a>
+        <a href="faq.html">FAQ</a>
+      </div>
+      <a href="https://github.com" class="github-link">GitHub</a>
+    </nav>
+  </header>
+
+  <main>
+    <section>
+      <h1>Install PlanSync</h1>
+      <div class="code-block">
+        <pre><code>npm install -g plansync</code></pre>
+      </div>
+
+      <h2>Prerequisites</h2>
+      <ul>
+        <li><strong>Node.js 18+</strong> — PlanSync runs on any LTS version of Node.js</li>
+        <li><strong>A GitHub account</strong> — with a repository you want to manage</li>
+        <li><strong>An Anthropic API key</strong> — for LLM-powered plan generation (<a href="https://console.anthropic.com/">get one here</a>)</li>
+        <li><strong>A GitHub OAuth App</strong> — create one at <a href="https://github.com/settings/developers">github.com/settings/developers</a> (no callback URL needed for device flow)</li>
+      </ul>
+
+      <h2>Set environment variables</h2>
+      <div class="code-block">
+        <pre><code>export ANTHROPIC_API_KEY=sk-ant-...
+export PLANSYNC_GITHUB_CLIENT_ID=your_github_oauth_client_id</code></pre>
+      </div>
+
+      <h2>Initialize</h2>
+      <p>Navigate to your GitHub repository and run:</p>
+      <div class="code-block">
+        <pre><code>cd my-project
+plansync init</code></pre>
+      </div>
+      <p>Follow the device-code authentication flow. PlanSync will save your credentials locally and scaffold the project.</p>
+
+      <h2>Common install errors</h2>
+      <table>
+        <tr><th>Error</th><th>Fix</th></tr>
+        <tr><td><code>PLANSYNC_GITHUB_CLIENT_ID not set</code></td><td>Create a GitHub OAuth App and export the client ID</td></tr>
+        <tr><td><code>ANTHROPIC_API_KEY not set</code></td><td>Get an API key from Anthropic and export it</td></tr>
+        <tr><td><code>No git remote "origin"</code></td><td>Push your repo to GitHub first</td></tr>
+        <tr><td><code>Permission denied</code></td><td>Use <code>sudo npm install -g</code> or fix your npm permissions</td></tr>
+      </table>
+    </section>
+  </main>
+
+  <footer>
+    <p>MIT licensed &middot; Built for AI-assisted development teams</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,9 @@
+#!/bin/sh
+# PlanSync post-merge hook
+# Reapplies read-only/writable file permissions after every pull or merge.
+# Installed by `plansync init`.
+
+if command -v plansync > /dev/null 2>&1; then
+  echo "PlanSync: re-syncing scope permissions..."
+  plansync sync
+fi

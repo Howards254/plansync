@@ -1,0 +1,186 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.6;
+  color: #1a1a2e;
+  background: #f8fafc;
+}
+
+a { color: #6366f1; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+header {
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+nav {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 18px;
+  color: #1a1a2e;
+}
+.logo:hover { text-decoration: none; }
+
+.nav-links { display: flex; gap: 24px; }
+.nav-links a { color: #475569; font-size: 14px; }
+.nav-links a:hover { color: #1a1a2e; }
+
+.github-link {
+  margin-left: auto;
+  font-size: 14px;
+}
+
+main { max-width: 960px; margin: 0 auto; padding: 48px 24px; }
+
+section { margin-bottom: 64px; }
+
+h1 { font-size: 40px; font-weight: 800; line-height: 1.15; margin-bottom: 16px; }
+h2 { font-size: 28px; font-weight: 700; margin-bottom: 16px; margin-top: 48px; }
+h3 { font-size: 20px; font-weight: 600; margin-bottom: 8px; margin-top: 32px; }
+
+.subtitle {
+  font-size: 18px;
+  color: #475569;
+  max-width: 640px;
+  margin-bottom: 32px;
+}
+
+.hero {
+  text-align: center;
+  padding: 48px 0;
+}
+.hero h1 { max-width: 600px; margin: 0 auto 16px; }
+.hero .subtitle { margin: 0 auto 32px; }
+.hero-actions { display: flex; gap: 16px; justify-content: center; margin-bottom: 40px; }
+
+.btn {
+  display: inline-block;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  transition: all .15s;
+}
+.btn:hover { text-decoration: none; }
+
+.btn-primary {
+  background: #6366f1;
+  color: #fff;
+}
+.btn-primary:hover { background: #4f46e5; }
+
+.btn-secondary {
+  background: #fff;
+  color: #6366f1;
+  border: 1.5px solid #6366f1;
+}
+.btn-secondary:hover { background: #f0f0ff; }
+
+.code-block {
+  background: #1e293b;
+  border-radius: 10px;
+  padding: 20px 24px;
+  overflow-x: auto;
+  margin: 16px 0;
+}
+.code-block code, .code-block pre {
+  font-family: "SF Mono", "Fira Code", "Fira Mono", monospace;
+  font-size: 14px;
+  color: #e2e8f0;
+}
+.code-block pre { margin: 0; }
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+}
+.feature {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 24px;
+}
+.feature h2 { font-size: 18px; margin-top: 0; margin-bottom: 8px; }
+.feature p { font-size: 14px; color: #475569; }
+
+.how-it-works ol {
+  list-style: none;
+  counter-reset: step;
+}
+.how-it-works ol li {
+  counter-increment: step;
+  padding: 12px 0 12px 48px;
+  position: relative;
+  font-size: 15px;
+  color: #475569;
+}
+.how-it-works ol li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 32px;
+  height: 32px;
+  background: #6366f1;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.team-types {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+}
+.team-types div {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 24px;
+  font-size: 14px;
+  color: #475569;
+}
+
+footer {
+  text-align: center;
+  padding: 32px 24px;
+  font-size: 13px;
+  color: #94a3b8;
+  border-top: 1px solid #e2e8f0;
+}
+
+ul, ol { margin: 16px 0; padding-left: 24px; }
+li { margin-bottom: 8px; }
+p { margin-bottom: 16px; }
+
+table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+th { font-weight: 600; background: #f1f5f9; }
+
+@media (max-width: 640px) {
+  h1 { font-size: 28px; }
+  .nav-links { display: none; }
+  .features, .team-types { grid-template-columns: 1fr; }
+}

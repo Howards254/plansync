@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Documentation — PlanSync</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/" class="logo">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <rect x="2" y="2" width="10" height="10" rx="2" fill="#6366f1"/>
+          <rect x="16" y="2" width="10" height="10" rx="2" fill="#6366f1" opacity="0.6"/>
+          <rect x="9" y="16" width="10" height="10" rx="2" fill="#6366f1" opacity="0.4"/>
+        </svg>
+        <span>PlanSync</span>
+      </a>
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="install.html">Install</a>
+        <a href="docs.html">Docs</a>
+        <a href="faq.html">FAQ</a>
+      </div>
+      <a href="https://github.com" class="github-link">GitHub</a>
+    </nav>
+  </header>
+
+  <main>
+    <section>
+      <h1>Documentation</h1>
+
+      <h2>Commands</h2>
+
+      <h3><code>plansync init</code></h3>
+      <p>Authenticate with GitHub and scaffold the project brain.</p>
+      <p>Verifies git remote, runs device-code OAuth, saves credentials to <code>.plansync/config.json</code>, copies GitHub Actions to <code>.github/workflows/</code>, installs a post-merge git hook, and creates a placeholder <code>PROJECT_PLAN.md</code>.</p>
+
+      <h3><code>plansync plan &lt;description&gt;</code></h3>
+      <p>Generate a structured project plan using an LLM.</p>
+      <p>Produces tasks with scope globs, dependencies, and acceptance criteria. Interactive loop supports approve, edit with feedback, regenerate, or cancel. On approval, saves to <code>.plansync/plan.json</code>.</p>
+
+      <h3><code>plansync delegate</code></h3>
+      <p>Write the approved plan to GitHub. Creates Issues per task, links dependencies, creates a Project v2 board, writes scope manifests and context files, commits and pushes.</p>
+
+      <h3><code>plansync status</code></h3>
+      <p>Print the current plan with live GitHub Issue states. Shows task status, assignee, scope, and blocking dependency chains.</p>
+
+      <h3><code>plansync sync [--user &lt;username&gt;]</code></h3>
+      <p>Apply read-only permissions. Files matching your assigned task scopes become writable (<code>chmod 0o644</code>). Everything else becomes read-only (<code>chmod 0o444</code>). Skips <code>.git/</code>, <code>node_modules/</code>, and <code>.plansync/</code>.</p>
+
+      <h2>Architecture</h2>
+
+      <p>PlanSync uses four layers:</p>
+
+      <ol>
+        <li><strong>Plan generation</strong> — The <code>plan</code> command calls the Anthropic API to produce a structured JSON plan. You review and revise until it's right.</li>
+        <li><strong>GitHub synchronization</strong> — The <code>delegate</code> command writes the plan to GitHub Issues, a Project board, scope manifests (<code>.plansync/scopes/*.json</code>), and per-agent context files.</li>
+        <li><strong>Scope enforcement</strong> — The <code>sync</code> command walks the repo and applies filesystem permissions. Only your assigned files are writable.</li>
+        <li><strong>CI monitoring</strong> — A GitHub Action checks every PR for scope violations. A scheduled action flags stalled tasks.</li>
+      </ol>
+
+      <p>Key design decisions:</p>
+      <ul>
+        <li><strong>GitHub is the source of truth</strong> — plans, manifests, and context files are plain files committed to the repo</li>
+        <li><strong>No server</strong> — PlanSync is a CLI tool and a set of CI actions. Nothing to host.</li>
+        <li><strong>No API gate</strong> — Scope enforcement uses <code>chmod</code>. Any tool respects it.</li>
+        <li><strong>CI is the backstop</strong> — local permissions prevent accidents; the GitHub Action prevents deliberate scope drift.</li>
+      </ul>
+
+      <h2>Context files</h2>
+
+      <p>PlanSync generates a context file per agent tool per task:</p>
+      <table>
+        <tr><th>File</th><th>Tool</th></tr>
+        <tr><td><code>CLAUDE.md</code></td><td>Claude Code</td></tr>
+        <tr><td><code>.cursorrules</code></td><td>Cursor</td></tr>
+        <tr><td><code>copilot-instructions.md</code></td><td>GitHub Copilot</td></tr>
+        <tr><td><code>AGENTS.md</code></td><td>OpenCode</td></tr>
+      </table>
+
+      <p>Each file tells the agent its task description, scope globs, acceptance criteria, and dependencies. The agent can read the full project but is instructed to only write within its scope.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>MIT licensed &middot; Built for AI-assisted development teams</p>
+  </footer>
+</body>
+</html>

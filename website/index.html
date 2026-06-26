@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PlanSync — Coordinate AI-assisted development teams</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/" class="logo">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <rect x="2" y="2" width="10" height="10" rx="2" fill="#6366f1"/>
+          <rect x="16" y="2" width="10" height="10" rx="2" fill="#6366f1" opacity="0.6"/>
+          <rect x="9" y="16" width="10" height="10" rx="2" fill="#6366f1" opacity="0.4"/>
+        </svg>
+        <span>PlanSync</span>
+      </a>
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="install.html">Install</a>
+        <a href="docs.html">Docs</a>
+        <a href="faq.html">FAQ</a>
+      </div>
+      <a href="https://github.com" class="github-link">GitHub</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Structure for AI-assisted development</h1>
+      <p class="subtitle">PlanSync lets you split a repository into scoped sections, assign each to a developer or AI agent, and enforce boundaries at the filesystem level.</p>
+      <div class="hero-actions">
+        <a href="install.html" class="btn btn-primary">Get started</a>
+        <a href="docs.html" class="btn btn-secondary">Read the docs</a>
+      </div>
+      <div class="code-block">
+        <pre><code>npm install -g plansync
+plansync init
+plansync plan "build an auth system"
+plansync delegate</code></pre>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="feature">
+        <h2>Plan</h2>
+        <p>Describe your project. An LLM generates a structured plan with tasks, scope, dependencies, and acceptance criteria. Review, revise, approve.</p>
+      </div>
+      <div class="feature">
+        <h2>Delegate</h2>
+        <p>Assign tasks to collaborators. PlanSync creates GitHub Issues, a Project board, and per-agent context files that tell each tool exactly what it can touch.</p>
+      </div>
+      <div class="feature">
+        <h2>Enforce</h2>
+        <p>Files outside your assigned scope become read-only. Your editor, Claude Code, Cursor, or any tool hits <code>EACCES</code> if it tries to write where it shouldn't.</p>
+      </div>
+      <div class="feature">
+        <h2>Watch</h2>
+        <p>A GitHub Action checks every PR for scope violations. A scheduled action flags stalled tasks before they block your team.</p>
+      </div>
+    </section>
+
+    <section class="how-it-works">
+      <h2>How it works</h2>
+      <ol>
+        <li><strong>No server.</strong> PlanSync is a CLI tool. It runs on your machine and in GitHub Actions.</li>
+        <li><strong>No API gate.</strong> Scope enforcement uses standard filesystem permissions. Any tool respects <code>chmod</code>.</li>
+        <li><strong>GitHub is the source of truth.</strong> Plans, manifests, and context files are plain files committed to your repo.</li>
+        <li><strong>CI is the backstop.</strong> Local permissions prevent accidents. The GitHub Action prevents drift.</li>
+      </ol>
+    </section>
+
+    <section class="for-teams">
+      <h2>For any team</h2>
+      <div class="team-types">
+        <div><strong>Human + AI agents</strong><br>One developer directing multiple AI coding agents, each with a well-defined section of the codebase.</div>
+        <div><strong>Team of developers</strong><br>Multiple developers working on the same repo, each locked to their assigned modules.</div>
+        <div><strong>Freelance collaboration</strong><br>a project owner delegates sections to contractors with clear boundaries and acceptance criteria.</div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>MIT licensed &middot; Built for AI-assisted development teams</p>
+  </footer>
+</body>
+</html>
