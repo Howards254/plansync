@@ -98,7 +98,7 @@
         <p>PlanSync uses four layers:</p>
 
         <ol>
-          <li><strong>Plan generation</strong> — The <code>plan</code> command calls the Anthropic API to produce a structured JSON plan. You review and revise until it's right.</li>
+          <li><strong>Plan generation</strong> — After <code>plansync init</code>, your coding agent reads <code>AGENTS.md</code> and writes <code>.plansync/plan.json</code> with tasks, scope, and dependencies. You review, revise, approve. Or use <code>plansync plan</code> with an LLM.</li>
           <li><strong>GitHub synchronization</strong> — The <code>delegate</code> command writes the plan to GitHub Issues, a Project board, scope manifests (<code>.plansync/scopes/*.json</code>), and per-agent context files.</li>
           <li><strong>Scope enforcement</strong> — The <code>sync</code> command walks the repo and applies filesystem permissions. Only your assigned files are writable.</li>
           <li><strong>CI monitoring</strong> — A GitHub Action checks every PR for scope violations. A scheduled action flags stalled tasks.</li>
@@ -123,11 +123,27 @@
           <tr><td><code>.github/copilot-instructions.md</code></td><td>GitHub Copilot</td></tr>
           <tr><td><code>.windsurfrules</code></td><td>Windsurf (Codeium)</td></tr>
           <tr><td><code>GEMINI.md</code></td><td>Google Gemini CLI</td></tr>
+          <tr><td><code>.continue/rules/00-plansync.md</code></td><td>Continue.dev</td></tr>
         </table>
 
         <p>Each file tells the agent its task description, scope globs, acceptance criteria, and dependencies. The agent can read the full project but is instructed to only write within its scope.</p>
 
-        <p><strong>Adding more agents:</strong> Drop a template file into <code>.plansync/templates/</code> and it will be rendered at delegate time. The filename becomes the output path (e.g., <code>.plansync/templates/.my-agent.md.tmpl</code> → <code>.my-agent.md</code>). All templates receive <code>projectTitle</code>, <code>taskDescription</code>, <code>scopeList</code>, <code>acceptanceList</code>, and <code>dependencyList</code> variables.</p>
+        <p>All context files use <code>&lt;!-- plansync --&gt;</code> / <code>&lt;!-- end-plansync --&gt;</code> markers. If you already have custom instructions in these files (e.g. coding conventions, testing preferences), PlanSync appends to or updates its section in-place — your content is never overwritten.</p>
+
+        <p><strong>Adding more agents:</strong> Drop a template file into <code>.plansync/templates/</code> and it will be rendered at delegate time. The filename becomes the output path (e.g., <code>.plansync/templates/.my-agent.md.tmpl</code> → <code>.my-agent.md</code>). All templates receive <code>projectTitle</code>, <code>taskDescription</code>, <code>scopeList</code>, <code>scopeGlobs</code>, <code>acceptanceList</code>, and <code>dependencyList</code> variables.</p>
+
+        <h2 id="auto-publish">Auto-publishing</h2>
+
+        <p><code>plansync init</code> installs a <code>.github/workflows/publish.yml</code> workflow that publishes to npm automatically when you push a version tag:</p>
+        <div class="code-block">
+          <pre><code><span class="prompt">$</span> npm version patch   <span class="comment"># bumps version, creates tag</span>
+<span class="prompt">$</span> git push --tags      <span class="comment"># triggers publish action</span></code></pre>
+        </div>
+        <p>To use it, add an <strong>npm Automation token</strong> to your repo secrets as <code>NPM_TOKEN</code>:</p>
+        <ol>
+          <li>Visit <code>npmjs.com → Access Tokens → Generate New Token → Automation</code></li>
+          <li>Add the token at <code>GitHub → repo → Settings → Secrets → Actions → NPM_TOKEN</code></li>
+        </ol>
       </div>
 
       <aside class="doc-sidebar">
@@ -136,6 +152,7 @@
           <li><a href="#commands">Commands</a></li>
           <li><a href="#architecture">Architecture</a></li>
           <li><a href="#context-files">Context files</a></li>
+          <li><a href="#auto-publish">Auto-publishing</a></li>
         </ul>
       </aside>
     </div>
