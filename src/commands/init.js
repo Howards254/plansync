@@ -2,6 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const config = require('../lib/config');
 const github = require('../lib/github');
+const { renderAdminContext, mergeOrWrite } = require('../lib/contextFiles');
 
 async function init() {
   const root = config.findRoot();
@@ -99,6 +100,13 @@ async function init() {
     fs.writeFileSync(planPath, '# Project Plan\n\nProject plan will be generated with `plansync plan`.\n');
     console.log('Created PROJECT_PLAN.md');
   }
+
+  // Write admin context for the admin's coding agent
+  const agentsPath = path.join(root, 'AGENTS.md');
+  const adminContent = renderAdminContext(remote.owner, remote.repo);
+  const merged = mergeOrWrite(agentsPath, adminContent);
+  fs.writeFileSync(agentsPath, merged);
+  console.log('Added PlanSync planning instructions to AGENTS.md');
 
   console.log('\nPlansync initialized for %s/%s', remote.owner, remote.repo);
 }

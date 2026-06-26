@@ -77,11 +77,12 @@
 
         <h3><code>plansync init</code></h3>
         <p>Authenticate with GitHub and scaffold the project brain.</p>
-        <p>Verifies git remote, runs device-code OAuth, saves credentials to <code>.plansync/config.json</code>, copies GitHub Actions to <code>.github/workflows/</code>, installs a post-merge git hook, and creates a placeholder <code>PROJECT_PLAN.md</code>.</p>
+        <p>Verifies git remote, runs device-code OAuth, saves credentials to <code>.plansync/config.json</code>, copies GitHub Actions to <code>.github/workflows/</code>, installs a post-merge git hook, creates a placeholder <code>PROJECT_PLAN.md</code>, and writes <code>AGENTS.md</code> with PlanSync planning instructions for your coding agent.</p>
 
         <h3><code>plansync plan &lt;description&gt;</code></h3>
-        <p>Generate a structured project plan using an LLM.</p>
+        <p>Generate a structured project plan using an LLM (requires <code>ANTHROPIC_API_KEY</code>).</p>
         <p>Produces tasks with scope globs, dependencies, and acceptance criteria. Interactive loop supports approve, edit with feedback, regenerate, or cancel. On approval, saves to <code>.plansync/plan.json</code>.</p>
+        <p><strong>Alternative:</strong> After <code>plansync init</code>, your coding agent reads <code>AGENTS.md</code> and can write <code>.plansync/plan.json</code> directly using the schema documented there. No API key needed — just brainstorm with your agent, then run <code>plansync delegate</code>.</p>
 
         <h3><code>plansync delegate</code></h3>
         <p>Write the approved plan to GitHub. Creates Issues per task, links dependencies, creates a Project v2 board, writes scope manifests and context files, commits and pushes.</p>
@@ -113,16 +114,20 @@
 
         <h2 id="context-files">Context files</h2>
 
-        <p>PlanSync generates a context file per agent tool per task:</p>
+        <p>PlanSync generates a context file per agent tool per task, compatible with 28+ coding agents:</p>
         <table>
-          <tr><th>File</th><th>Tool</th></tr>
+          <tr><th>File</th><th>Agents</th></tr>
+          <tr><td><code>AGENTS.md</code></td><td>OpenCode, Codex CLI, Cursor, GitHub Copilot, VS Code AI, Devin, Aider, Zed, Warp, JetBrains Junie, Gemini CLI, Goose, Factory, Amp, Jules + 14 more</td></tr>
           <tr><td><code>CLAUDE.md</code></td><td>Claude Code</td></tr>
           <tr><td><code>.cursorrules</code></td><td>Cursor</td></tr>
-          <tr><td><code>copilot-instructions.md</code></td><td>GitHub Copilot</td></tr>
-          <tr><td><code>AGENTS.md</code></td><td>OpenCode</td></tr>
+          <tr><td><code>.github/copilot-instructions.md</code></td><td>GitHub Copilot</td></tr>
+          <tr><td><code>.windsurfrules</code></td><td>Windsurf (Codeium)</td></tr>
+          <tr><td><code>GEMINI.md</code></td><td>Google Gemini CLI</td></tr>
         </table>
 
         <p>Each file tells the agent its task description, scope globs, acceptance criteria, and dependencies. The agent can read the full project but is instructed to only write within its scope.</p>
+
+        <p><strong>Adding more agents:</strong> Drop a template file into <code>.plansync/templates/</code> and it will be rendered at delegate time. The filename becomes the output path (e.g., <code>.plansync/templates/.my-agent.md.tmpl</code> → <code>.my-agent.md</code>). All templates receive <code>projectTitle</code>, <code>taskDescription</code>, <code>scopeList</code>, <code>acceptanceList</code>, and <code>dependencyList</code> variables.</p>
       </div>
 
       <aside class="doc-sidebar">

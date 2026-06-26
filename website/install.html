@@ -81,14 +81,18 @@
         <ul>
           <li><strong>Node.js 18+</strong> — PlanSync runs on any LTS version of Node.js</li>
           <li><strong>A GitHub account</strong> — with a repository you want to manage</li>
-          <li><strong>An Anthropic API key</strong> — for LLM-powered plan generation (<a href="https://console.anthropic.com/">get one here</a>)</li>
           <li><strong>A GitHub OAuth App</strong> — create one at <a href="https://github.com/settings/developers">github.com/settings/developers</a> (no callback URL needed for device flow)</li>
         </ul>
 
+        <p><strong>Optional:</strong> An <a href="https://console.anthropic.com/">Anthropic API key</a> enables LLM-powered plan generation via <code>plansync plan</code>. Without it, your coding agent can write the plan directly after <code>plansync init</code> — see the <a href="docs.html">docs</a> for details.</p>
+
         <h2 id="env-vars">Set environment variables</h2>
         <div class="code-block">
-          <pre><code><span class="prompt">$</span> export ANTHROPIC_API_KEY=sk-ant-...
-<span class="prompt">$</span> export PLANSYNC_GITHUB_CLIENT_ID=your_github_oauth_client_id</code></pre>
+          <pre><code><span class="prompt">$</span> export PLANSYNC_GITHUB_CLIENT_ID=your_github_oauth_client_id</code></pre>
+        </div>
+        <p>Optional — for LLM-powered planning:</p>
+        <div class="code-block">
+          <pre><code><span class="prompt">$</span> export ANTHROPIC_API_KEY=sk-ant-...</code></pre>
         </div>
 
         <h2 id="initialize">Initialize</h2>
