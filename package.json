@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Coordination and accountability layer for AI-assisted development teams",
   "bin": {
-    "plansync": "./bin/plansync.js"
+    "plansync": "bin/plansync.js"
   },
   "files": [
     "bin/",
@@ -21,7 +21,7 @@
     "type": "git",
     "url": "git+https://github.com/howards254/plansync.git"
   },
-  "homepage": "https://howards254.github.io/plansync",
+  "homepage": "https://plansync.freedev.app",
   "bugs": {
     "url": "https://github.com/howards254/plansync/issues"
   },

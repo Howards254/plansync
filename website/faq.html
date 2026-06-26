@@ -4,16 +4,35 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>FAQ — PlanSync</title>
+  <meta name="description" content="Frequently asked questions about PlanSync: scope enforcement, GitHub integration, LLM plans, and collaboration.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
   <header>
     <nav>
       <a href="/" class="logo">
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-          <rect x="2" y="2" width="10" height="10" rx="2" fill="#6366f1"/>
-          <rect x="16" y="2" width="10" height="10" rx="2" fill="#6366f1" opacity="0.6"/>
-          <rect x="9" y="16" width="10" height="10" rx="2" fill="#6366f1" opacity="0.4"/>
+        <svg width="28" height="28" viewBox="0 0 64 64" fill="none">
+          <defs>
+            <linearGradient id="lg1" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#6366f1"/>
+              <stop offset="1" stop-color="#818cf8"/>
+            </linearGradient>
+            <linearGradient id="lg2" x1="36" y1="4" x2="60" y2="28" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#6366f1"/>
+              <stop offset="1" stop-color="#818cf8"/>
+            </linearGradient>
+            <linearGradient id="lg3" x1="20" y1="36" x2="44" y2="60" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#6366f1"/>
+              <stop offset="1" stop-color="#818cf8"/>
+            </linearGradient>
+          </defs>
+          <rect x="4" y="4" width="24" height="24" rx="5" fill="url(#lg1)"/>
+          <rect x="36" y="4" width="24" height="24" rx="5" fill="url(#lg2)" opacity="0.65"/>
+          <rect x="20" y="36" width="24" height="24" rx="5" fill="url(#lg3)" opacity="0.45"/>
+          <rect x="24" y="24" width="16" height="16" rx="4" fill="#a5b4fc" opacity="0.6"/>
         </svg>
         <span>PlanSync</span>
       </a>
@@ -23,42 +42,99 @@
         <a href="docs.html">Docs</a>
         <a href="faq.html">FAQ</a>
       </div>
-      <a href="https://github.com" class="github-link">GitHub</a>
+      <a href="https://github.com/howards254/plansync" class="github-link">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+      </a>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="4" y1="7" x2="20" y2="7"/>
+          <line x1="4" y1="12" x2="20" y2="12"/>
+          <line x1="4" y1="17" x2="20" y2="17"/>
+        </svg>
+      </button>
     </nav>
   </header>
 
+  <div class="nav-overlay" id="nav-overlay">
+    <div class="overlay-content">
+      <a href="/">Home</a>
+      <a href="install.html">Install</a>
+      <a href="docs.html">Docs</a>
+      <a href="faq.html">FAQ</a>
+      <a href="https://github.com/howards254/plansync" style="margin-top:auto; border-bottom:none; color:var(--primary);">GitHub</a>
+    </div>
+  </div>
+
   <main>
-    <section>
+    <div class="page-header">
       <h1>Frequently Asked Questions</h1>
+    </div>
 
-      <h3>Does this replace GitHub Projects or Issues?</h3>
-      <p>No. PlanSync uses Issues and Projects as the collaboration surface. It creates them automatically from the plan, but you continue to use GitHub normally for discussions, status updates, and project management.</p>
+    <div class="page-body">
+      <div class="doc-content">
+        <h2 id="replaces-gh">Does this replace GitHub Projects or Issues?</h2>
+        <p>No. PlanSync uses Issues and Projects as the collaboration surface. It creates them automatically from the plan, but you continue to use GitHub normally for discussions, status updates, and project management.</p>
 
-      <h3>What if my team uses different AI tools?</h3>
-      <p>PlanSync generates context files for Claude Code, Cursor, Copilot, and OpenCode. Each tool gets the format it expects. Adding support for a new tool is a one-function change in the source code.</p>
+        <h2 id="different-tools">What if my team uses different AI tools?</h2>
+        <p>PlanSync generates context files for Claude Code, Cursor, Copilot, and OpenCode. Each tool gets the format it expects. Adding support for a new tool is a one-function change in the source code.</p>
 
-      <h3>What happens if the LLM call fails?</h3>
-      <p>The <code>plan</code> command catches LLM errors and asks if you want to retry. Your Anthropic API key is never sent anywhere except directly to Anthropic's API — PlanSync doesn't proxy it through any server.</p>
+        <h2 id="llm-fails">What happens if the LLM call fails?</h2>
+        <p>The <code>plan</code> command catches LLM errors and asks if you want to retry. Your Anthropic API key is never sent anywhere except directly to Anthropic's API — PlanSync doesn't proxy it through any server.</p>
 
-      <h3>Is the scope enforcement secure?</h3>
-      <p>The <code>chmod</code>-based enforcement stops <strong>accidental</strong> writes outside a task's scope. It is not an adversarial security boundary — the same OS user that owns the file can revert the permission. The GitHub Action scope check is the real backstop for intentional violations.</p>
+        <h2 id="security">Is the scope enforcement secure?</h2>
+        <p>The <code>chmod</code>-based enforcement stops <strong>accidental</strong> writes outside a task's scope. It is not an adversarial security boundary — the same OS user that owns the file can revert the permission. The GitHub Action scope check is the real backstop for intentional violations.</p>
 
-      <h3>Can I write a plan manually?</h3>
-      <p>Yes. The plan file (<code>.plansync/plan.json</code>) is a simple JSON document that validates against a Zod schema. Write it by hand and run <code>plansync delegate</code> directly.</p>
+        <h2 id="manual-plan">Can I write a plan manually?</h2>
+        <p>Yes. The plan file (<code>.plansync/plan.json</code>) is a simple JSON document that validates against a Zod schema. Write it by hand and run <code>plansync delegate</code> directly.</p>
 
-      <h3>Does PlanSync send my code anywhere?</h3>
-      <p>No. The source code never leaves your machine or your CI runner. The Anthropic API call in <code>plansync plan</code> sends only your project description to generate the plan structure.</p>
+        <h2 id="code-privacy">Does PlanSync send my code anywhere?</h2>
+        <p>No. The source code never leaves your machine or your CI runner. The Anthropic API call in <code>plansync plan</code> sends only your project description to generate the plan structure.</p>
 
-      <h3>What if a collaborator doesn't run <code>plansync sync</code>?</h3>
-      <p>They'll have write access to everything until they run it. The post-merge git hook (installed by <code>plansync init</code>) runs it automatically after every pull. CI will still flag any scope violations in their PRs.</p>
+        <h2 id="no-sync">What if a collaborator doesn't run <code>plansync sync</code>?</h2>
+        <p>They'll have write access to everything until they run it. The post-merge git hook (installed by <code>plansync init</code>) runs it automatically after every pull. CI will still flag any scope violations in their PRs.</p>
 
-      <h3>How do I update the plan after delegation?</h3>
-      <p>Edit <code>.plansync/plan.json</code> (or regenerate with <code>plansync plan</code>), then run <code>plansync delegate</code> again. It will create new Issues for new tasks and skip existing ones.</p>
-    </section>
+        <h2 id="update-plan">How do I update the plan after delegation?</h2>
+        <p>Edit <code>.plansync/plan.json</code> (or regenerate with <code>plansync plan</code>), then run <code>plansync delegate</code> again. It will create new Issues for new tasks and skip existing ones.</p>
+      </div>
+
+      <aside class="doc-sidebar">
+        <h4>On this page</h4>
+        <ul>
+          <li><a href="#replaces-gh">GitHub Projects?</a></li>
+          <li><a href="#different-tools">Different AI tools</a></li>
+          <li><a href="#llm-fails">LLM call fails</a></li>
+          <li><a href="#security">Scope security</a></li>
+          <li><a href="#manual-plan">Manual plan</a></li>
+          <li><a href="#code-privacy">Code privacy</a></li>
+          <li><a href="#no-sync">No sync?</a></li>
+          <li><a href="#update-plan">Update plan</a></li>
+        </ul>
+      </aside>
+    </div>
   </main>
 
   <footer>
-    <p>MIT licensed &middot; Built for AI-assisted development teams</p>
+    <div class="footer-inner">
+      <p>MIT licensed &middot; Built for AI-assisted development teams</p>
+      <div class="footer-links">
+        <a href="https://github.com/howards254/plansync">GitHub</a>
+        <a href="docs.html">Documentation</a>
+        <a href="faq.html">FAQ</a>
+      </div>
+    </div>
   </footer>
+
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+    const hamburger = document.getElementById('hamburger');
+    const overlay = document.getElementById('nav-overlay');
+    hamburger.addEventListener('click', () => overlay.classList.toggle('open'));
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
+  </script>
 </body>
 </html>

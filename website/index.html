@@ -4,16 +4,35 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PlanSync — Coordinate AI-assisted development teams</title>
+  <meta name="description" content="PlanSync lets you split a repository into scoped sections, assign each to a developer or AI agent, and enforce boundaries at the filesystem level.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-  <header>
+  <header id="nav-header">
     <nav>
       <a href="/" class="logo">
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-          <rect x="2" y="2" width="10" height="10" rx="2" fill="#6366f1"/>
-          <rect x="16" y="2" width="10" height="10" rx="2" fill="#6366f1" opacity="0.6"/>
-          <rect x="9" y="16" width="10" height="10" rx="2" fill="#6366f1" opacity="0.4"/>
+        <svg width="28" height="28" viewBox="0 0 64 64" fill="none">
+          <defs>
+            <linearGradient id="lg1" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#6366f1"/>
+              <stop offset="1" stop-color="#818cf8"/>
+            </linearGradient>
+            <linearGradient id="lg2" x1="36" y1="4" x2="60" y2="28" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#6366f1"/>
+              <stop offset="1" stop-color="#818cf8"/>
+            </linearGradient>
+            <linearGradient id="lg3" x1="20" y1="36" x2="44" y2="60" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#6366f1"/>
+              <stop offset="1" stop-color="#818cf8"/>
+            </linearGradient>
+          </defs>
+          <rect x="4" y="4" width="24" height="24" rx="5" fill="url(#lg1)"/>
+          <rect x="36" y="4" width="24" height="24" rx="5" fill="url(#lg2)" opacity="0.65"/>
+          <rect x="20" y="36" width="24" height="24" rx="5" fill="url(#lg3)" opacity="0.45"/>
+          <rect x="24" y="24" width="16" height="16" rx="4" fill="#a5b4fc" opacity="0.6"/>
         </svg>
         <span>PlanSync</span>
       </a>
@@ -23,67 +42,162 @@
         <a href="docs.html">Docs</a>
         <a href="faq.html">FAQ</a>
       </div>
-      <a href="https://github.com" class="github-link">GitHub</a>
+      <a href="https://github.com/howards254/plansync" class="github-link">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+      </a>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="4" y1="7" x2="20" y2="7"/>
+          <line x1="4" y1="12" x2="20" y2="12"/>
+          <line x1="4" y1="17" x2="20" y2="17"/>
+        </svg>
+      </button>
     </nav>
   </header>
 
+  <div class="nav-overlay" id="nav-overlay">
+    <div class="overlay-content">
+      <a href="/">Home</a>
+      <a href="install.html">Install</a>
+      <a href="docs.html">Docs</a>
+      <a href="faq.html">FAQ</a>
+      <a href="https://github.com/howards254/plansync" style="margin-top:auto; border-bottom:none; color:var(--primary);">GitHub</a>
+    </div>
+  </div>
+
   <main>
     <section class="hero">
-      <h1>Structure for AI-assisted development</h1>
-      <p class="subtitle">PlanSync lets you split a repository into scoped sections, assign each to a developer or AI agent, and enforce boundaries at the filesystem level.</p>
-      <div class="hero-actions">
-        <a href="install.html" class="btn btn-primary">Get started</a>
-        <a href="docs.html" class="btn btn-secondary">Read the docs</a>
-      </div>
-      <div class="code-block">
-        <pre><code>npm install -g plansync
-plansync init
-plansync plan "build an auth system"
-plansync delegate</code></pre>
-      </div>
-    </section>
-
-    <section class="features">
-      <div class="feature">
-        <h2>Plan</h2>
-        <p>Describe your project. An LLM generates a structured plan with tasks, scope, dependencies, and acceptance criteria. Review, revise, approve.</p>
-      </div>
-      <div class="feature">
-        <h2>Delegate</h2>
-        <p>Assign tasks to collaborators. PlanSync creates GitHub Issues, a Project board, and per-agent context files that tell each tool exactly what it can touch.</p>
-      </div>
-      <div class="feature">
-        <h2>Enforce</h2>
-        <p>Files outside your assigned scope become read-only. Your editor, Claude Code, Cursor, or any tool hits <code>EACCES</code> if it tries to write where it shouldn't.</p>
-      </div>
-      <div class="feature">
-        <h2>Watch</h2>
-        <p>A GitHub Action checks every PR for scope violations. A scheduled action flags stalled tasks before they block your team.</p>
+      <div class="hero-content fade-up visible">
+        <span class="eyebrow">v0.1.0 — Now on npm</span>
+        <h1>Structure for AI-assisted development</h1>
+        <p class="subtitle">PlanSync lets you split a repository into scoped sections, assign each to a developer or AI agent, and enforce boundaries at the filesystem level.</p>
+        <div class="hero-actions">
+          <a href="install.html" class="btn btn-primary">Get started</a>
+          <a href="docs.html" class="btn btn-secondary">Read the docs</a>
+        </div>
+        <div class="terminal fade-up visible">
+          <div class="terminal-header">
+            <span class="terminal-dot"></span>
+            <span class="terminal-dot"></span>
+            <span class="terminal-dot"></span>
+            <span class="terminal-title">~/plansync</span>
+          </div>
+          <pre><code><span class="prompt">$</span> <span class="cmd">npm install -g plansync</span>
+<span class="prompt">$</span> <span class="cmd">plansync init</span>
+<span class="prompt">$</span> <span class="cmd">plansync plan </span><span class="comment">"build an auth system"</span>
+<span class="prompt">$</span> <span class="cmd">plansync delegate<span class="cursor"></span></span></code></pre>
+        </div>
       </div>
     </section>
 
-    <section class="how-it-works">
-      <h2>How it works</h2>
-      <ol>
-        <li><strong>No server.</strong> PlanSync is a CLI tool. It runs on your machine and in GitHub Actions.</li>
-        <li><strong>No API gate.</strong> Scope enforcement uses standard filesystem permissions. Any tool respects <code>chmod</code>.</li>
-        <li><strong>GitHub is the source of truth.</strong> Plans, manifests, and context files are plain files committed to your repo.</li>
-        <li><strong>CI is the backstop.</strong> Local permissions prevent accidents. The GitHub Action prevents drift.</li>
-      </ol>
+    <section class="section-light" id="features">
+      <div class="section-inner fade-up">
+        <h2 class="section-title">How PlanSync works</h2>
+        <p class="section-subtitle">Plan, delegate, enforce, and watch — a four-step workflow that keeps every collaborator in bounds.</p>
+        <div class="features">
+          <div class="feature">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            </div>
+            <h3>Plan</h3>
+            <p>Describe your project. An LLM generates a structured plan with tasks, scope, dependencies, and acceptance criteria. Review, revise, approve.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <h3>Delegate</h3>
+            <p>Assign tasks to collaborators. PlanSync creates GitHub Issues, a Project board, and per-agent context files that tell each tool exactly what it can touch.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <h3>Enforce</h3>
+            <p>Files outside your assigned scope become read-only. Your editor, Claude Code, Cursor, or any tool hits <code>EACCES</code> if it tries to write where it shouldn't.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <h3>Watch</h3>
+            <p>A GitHub Action checks every PR for scope violations. A scheduled action flags stalled tasks before they block your team.</p>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <section class="for-teams">
-      <h2>For any team</h2>
-      <div class="team-types">
-        <div><strong>Human + AI agents</strong><br>One developer directing multiple AI coding agents, each with a well-defined section of the codebase.</div>
-        <div><strong>Team of developers</strong><br>Multiple developers working on the same repo, each locked to their assigned modules.</div>
-        <div><strong>Freelance collaboration</strong><br>a project owner delegates sections to contractors with clear boundaries and acceptance criteria.</div>
+    <section class="section-light" style="padding-top:0;">
+      <div class="section-inner fade-up">
+        <h2 class="section-title">How it works</h2>
+        <p class="section-subtitle">No server, no API gate, no lock-in. PlanSync is a CLI tool that works with your existing stack.</p>
+        <ol class="timeline" style="counter-reset: step;">
+          <li>
+            <strong>No server</strong>
+            <span>PlanSync is a CLI tool. It runs on your machine and in GitHub Actions.</span>
+          </li>
+          <li>
+            <strong>No API gate</strong>
+            <span>Scope enforcement uses standard filesystem permissions. Any tool respects <code>chmod</code>.</span>
+          </li>
+          <li>
+            <strong>GitHub is the source of truth</strong>
+            <span>Plans, manifests, and context files are plain files committed to your repo.</span>
+          </li>
+          <li>
+            <strong>CI is the backstop</strong>
+            <span>Local permissions prevent accidents. The GitHub Action prevents drift.</span>
+          </li>
+        </ol>
       </div>
+    </section>
+
+    <section class="section-light" style="padding-top:0;">
+      <div class="section-inner fade-up">
+        <h2 class="section-title">For any team</h2>
+        <p class="section-subtitle">Whether you're a solo developer with AI agents or a team of humans, PlanSync adapts to how you work.</p>
+        <div class="team-types">
+          <div><strong>Human + AI agents</strong>One developer directing multiple AI coding agents, each with a well-defined section of the codebase.</div>
+          <div><strong>Team of developers</strong>Multiple developers working on the same repo, each locked to their assigned modules.</div>
+          <div><strong>Freelance collaboration</strong>A project owner delegates sections to contractors with clear boundaries and acceptance criteria.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="final-cta fade-up">
+      <h2>Ready to bring structure to your workflow?</h2>
+      <p>Install PlanSync in one command and start scoping your next project.</p>
+      <a href="install.html" class="btn btn-primary">Install PlanSync</a>
     </section>
   </main>
 
   <footer>
-    <p>MIT licensed &middot; Built for AI-assisted development teams</p>
+    <div class="footer-inner">
+      <p>MIT licensed &middot; Built for AI-assisted development teams</p>
+      <div class="footer-links">
+        <a href="https://github.com/howards254/plansync">GitHub</a>
+        <a href="docs.html">Documentation</a>
+        <a href="faq.html">FAQ</a>
+      </div>
+    </div>
   </footer>
+
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+    const hamburger = document.getElementById('hamburger');
+    const overlay = document.getElementById('nav-overlay');
+    hamburger.addEventListener('click', () => overlay.classList.toggle('open'));
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
+
+    if (window.location.pathname === '/' || window.location.pathname === '') {
+      document.getElementById('nav-header').classList.add('dark-nav');
+    }
+  </script>
 </body>
 </html>
