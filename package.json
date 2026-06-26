@@ -5,6 +5,37 @@
   "bin": {
     "plansync": "./bin/plansync.js"
   },
+  "files": [
+    "bin/",
+    "src/commands/",
+    "src/lib/",
+    "src/templates/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/howards254/plansync.git"
+  },
+  "homepage": "https://howards254.github.io/plansync",
+  "bugs": {
+    "url": "https://github.com/howards254/plansync/issues"
+  },
+  "keywords": [
+    "ai",
+    "github",
+    "scope",
+    "delegation",
+    "cli",
+    "developer-tools",
+    "ai-agents",
+    "collaboration",
+    "plansync"
+  ],
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest"
@@ -18,7 +49,6 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
-    "dotenv": "^16.4.0",
     "vitest": "^3.0.0"
   },
   "license": "MIT"
