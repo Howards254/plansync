@@ -80,9 +80,8 @@
         <p>Verifies git remote, runs device-code OAuth, saves credentials to <code>.plansync/config.json</code>, copies GitHub Actions to <code>.github/workflows/</code>, installs a post-merge git hook, creates a placeholder <code>PROJECT_PLAN.md</code>, and writes <code>AGENTS.md</code> with PlanSync planning instructions for your coding agent.</p>
 
         <h3><code>plansync plan &lt;description&gt;</code></h3>
-        <p>Generate a structured project plan using an LLM (requires <code>ANTHROPIC_API_KEY</code>).</p>
-        <p>Produces tasks with scope globs, dependencies, and acceptance criteria. Interactive loop supports approve, edit with feedback, regenerate, or cancel. On approval, saves to <code>.plansync/plan.json</code>.</p>
-        <p><strong>Alternative:</strong> After <code>plansync init</code>, your coding agent reads <code>AGENTS.md</code> and can write <code>.plansync/plan.json</code> directly using the schema documented there. No API key needed — just brainstorm with your agent, then run <code>plansync delegate</code>.</p>
+        <p>Generate a structured project plan. After <code>plansync init</code>, your coding agent reads <code>AGENTS.md</code> and writes <code>.plansync/plan.json</code> directly — no API keys needed, just brainstorm with your agent and run <code>plansync delegate</code>.</p>
+        <p>Alternatively, if you have an <code>ANTHROPIC_API_KEY</code>, the <code>plan</code> command uses an LLM to generate tasks with scope globs, dependencies, and acceptance criteria. Interactive loop supports approve, edit, regenerate, or cancel.</p>
 
         <h3><code>plansync delegate</code></h3>
         <p>Write the approved plan to GitHub. Creates Issues per task, links dependencies, creates a Project v2 board, writes scope manifests and context files, commits and pushes.</p>
@@ -98,7 +97,7 @@
         <p>PlanSync uses four layers:</p>
 
         <ol>
-          <li><strong>Plan generation</strong> — After <code>plansync init</code>, your coding agent reads <code>AGENTS.md</code> and writes <code>.plansync/plan.json</code> with tasks, scope, and dependencies. You review, revise, approve. Or use <code>plansync plan</code> with an LLM.</li>
+          <li><strong>Plan generation</strong> — After <code>plansync init</code>, your coding agent reads <code>AGENTS.md</code> and writes <code>.plansync/plan.json</code> with tasks, scope, and dependencies. You review, revise, approve.</li>
           <li><strong>GitHub synchronization</strong> — The <code>delegate</code> command writes the plan to GitHub Issues, a Project board, scope manifests (<code>.plansync/scopes/*.json</code>), and per-agent context files.</li>
           <li><strong>Scope enforcement</strong> — The <code>sync</code> command walks the repo and applies filesystem permissions. Only your assigned files are writable.</li>
           <li><strong>CI monitoring</strong> — A GitHub Action checks every PR for scope violations. A scheduled action flags stalled tasks.</li>
@@ -132,18 +131,7 @@
 
         <p><strong>Adding more agents:</strong> Drop a template file into <code>.plansync/templates/</code> and it will be rendered at delegate time. The filename becomes the output path (e.g., <code>.plansync/templates/.my-agent.md.tmpl</code> → <code>.my-agent.md</code>). All templates receive <code>projectTitle</code>, <code>taskDescription</code>, <code>scopeList</code>, <code>scopeGlobs</code>, <code>acceptanceList</code>, and <code>dependencyList</code> variables.</p>
 
-        <h2 id="auto-publish">Auto-publishing</h2>
 
-        <p><code>plansync init</code> installs a <code>.github/workflows/publish.yml</code> workflow that publishes to npm automatically when you push a version tag:</p>
-        <div class="code-block">
-          <pre><code><span class="prompt">$</span> npm version patch   <span class="comment"># bumps version, creates tag</span>
-<span class="prompt">$</span> git push --tags      <span class="comment"># triggers publish action</span></code></pre>
-        </div>
-        <p>To use it, add an <strong>npm Automation token</strong> to your repo secrets as <code>NPM_TOKEN</code>:</p>
-        <ol>
-          <li>Visit <code>npmjs.com → Access Tokens → Generate New Token → Automation</code></li>
-          <li>Add the token at <code>GitHub → repo → Settings → Secrets → Actions → NPM_TOKEN</code></li>
-        </ol>
       </div>
 
       <aside class="doc-sidebar">
@@ -152,7 +140,6 @@
           <li><a href="#commands">Commands</a></li>
           <li><a href="#architecture">Architecture</a></li>
           <li><a href="#context-files">Context files</a></li>
-          <li><a href="#auto-publish">Auto-publishing</a></li>
         </ul>
       </aside>
     </div>
