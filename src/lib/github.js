@@ -2,8 +2,8 @@ const { Octokit } = require('@octokit/rest');
 const { createOAuthDeviceAuth } = require('@octokit/auth-oauth-device');
 const { execSync } = require('child_process');
 
-function getClientId() {
-  return process.env.PLANSYNC_GITHUB_CLIENT_ID || null;
+function getClientId(config = {}) {
+  return process.env.PLANSYNC_GITHUB_CLIENT_ID || config.githubClientId || null;
 }
 
 async function authenticate(clientId, onVerification) {

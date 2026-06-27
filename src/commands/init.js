@@ -1,8 +1,19 @@
 const path = require('path');
 const fs = require('fs');
+const readline = require('readline');
 const config = require('../lib/config');
 const github = require('../lib/github');
 const { renderAdminContext, mergeOrWrite } = require('../lib/contextFiles');
+
+function ask(question) {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => {
+      rl.close();
+      resolve(answer.trim());
+    });
+  });
+}
 
 async function init() {
   const root = config.findRoot();
@@ -18,16 +29,16 @@ async function init() {
     process.exit(1);
   }
 
-  let clientId = github.getClientId();
+  const cfg = config.read(root);
+  let clientId = github.getClientId(cfg);
   if (!clientId) {
-    console.error('PLANSYNC_GITHUB_CLIENT_ID environment variable is not set.');
-    console.error();
-    console.error('To use plansync, you need a GitHub OAuth App:');
-    console.error('  1. Go to https://github.com/settings/developers');
-    console.error('  2. Create a new OAuth App (no callback URL needed for device flow)');
-    console.error('  3. Copy the Client ID and set it:');
-    console.error('     export PLANSYNC_GITHUB_CLIENT_ID=your_client_id_here');
-    process.exit(1);
+    console.log('PlanSync needs a GitHub OAuth App Client ID to authenticate with GitHub.');
+    console.log('Create one at https://github.com/settings/developers (no callback URL needed).\n');
+    clientId = await ask('Paste your GitHub OAuth App Client ID: ');
+    if (!clientId) {
+      console.error('No Client ID provided. Run `plansync init` again.');
+      process.exit(1);
+    }
   }
 
   console.log('Authenticating with GitHub...');
@@ -53,7 +64,6 @@ async function init() {
   }
   console.log('Authentication successful.\n');
 
-  const cfg = config.read(root);
   cfg.githubToken = token;
   cfg.githubClientId = clientId;
   cfg.owner = remote.owner;

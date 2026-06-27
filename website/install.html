@@ -84,10 +84,11 @@
           <li><strong>A GitHub OAuth App</strong> — create one at <a href="https://github.com/settings/developers">github.com/settings/developers</a> (no callback URL needed for device flow)</li>
         </ul>
 
-        <h2 id="env-vars">Set environment variable</h2>
+        <h2 id="env-vars">Set environment variable (optional)</h2>
         <div class="code-block">
           <pre><code><span class="prompt">$</span> export PLANSYNC_GITHUB_CLIENT_ID=your_github_oauth_client_id</code></pre>
         </div>
+        <p>If you skip this, <code>plansync init</code> will prompt you to paste the Client ID interactively. It's saved to <code>.plansync/config.json</code> either way — you only need to do this once.</p>
 
         <h2 id="initialize">Initialize</h2>
         <p>Navigate to your GitHub repository and run:</p>
