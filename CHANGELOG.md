@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2 — 2026-06-27
+
+- **Interactive client ID prompt** — `plansync init` no longer requires `PLANSYNC_GITHUB_CLIENT_ID` env var; prompts for it if missing and saves to config
+- **Context files for 7 agents** — AGENTS.md (28+), CLAUDE.md, .cursorrules, .windsurfrules, copilot-instructions.md, GEMINI.md, .continue/rules/00-plansync.md
+- **Website cleanup** — removed Anthropic/LLM/API-key-first messaging; agent-native flow is the lead story
+
 ## 0.1.0 — 2026-06-26
 
 Initial release.
