@@ -32,17 +32,12 @@ async function init() {
   const cfg = config.read(root);
 
   // --- Authentication ---
-  console.log('PlanSync needs a GitHub token to create Issues and manage your repo.');
-  console.log();
-  console.log('Option 1 (recommended): Create a Personal Access Token');
-  console.log('  1. Visit https://github.com/settings/tokens/new');
-  console.log('  2. Check repo, issues, project scopes');
-  console.log('  3. Generate and copy the token');
-  console.log();
-  console.log('Option 2: Browser-based device flow (requires an OAuth App)');
+  const clientId = github.getClientId(cfg);
+
+  console.log('PlanSync needs permission to manage your repo on GitHub.');
   console.log();
 
-  const answer = await ask('Paste your token here, or press Enter for browser auth: ');
+  const answer = await ask('Press Enter to authenticate in your browser, or paste a Personal Access Token: ');
 
   let token;
   let username;
@@ -60,14 +55,19 @@ async function init() {
       process.exit(1);
     }
   } else {
-    // Device flow fallback
-    const clientId = github.getClientId(cfg);
-    console.log('\nStarting browser authentication...');
+    // Device flow
+    if (!clientId) {
+      console.error('No Client ID available. Create one at https://github.com/settings/developers');
+      console.error('or paste a Personal Access Token instead.');
+      process.exit(1);
+    }
+
+    console.log();
     try {
       token = await github.authenticate(clientId, (verification) => {
-        console.log();
-        console.log('Visit: %s', verification.verification_uri);
-        console.log('Code:  %s', verification.user_code);
+        console.log('1. Visit %s', verification.verification_uri);
+        console.log('2. Enter code: %s', verification.user_code);
+        console.log('3. Authorize PlanSync');
         console.log();
       });
       username = await github.verifyPAT(token);
@@ -75,13 +75,12 @@ async function init() {
     } catch (err) {
       if (err.status === 404) {
         console.error('Authentication failed: invalid Client ID.');
-        console.error('Set PLANSYNC_GITHUB_CLIENT_ID env var to your own OAuth App Client ID.');
       } else if (err.status === 401) {
-        console.error('Authentication failed: the device code was denied or expired.');
-        console.error('Run `plansync init` again.');
+        console.error('Authentication failed: the code was denied or expired.');
       } else {
         console.error('Authentication failed: %s', err.message);
       }
+      console.error('Run `plansync init` again or paste a Personal Access Token instead.');
       process.exit(1);
     }
   }

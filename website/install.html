@@ -84,13 +84,14 @@
         </ul>
 
         <h2 id="auth">Authenticate</h2>
-        <p>Run <code>plansync init</code> in your project and paste a GitHub Personal Access Token when prompted:</p>
+        <p>Run <code>plansync init</code> and press <strong>Enter</strong> to authenticate in your browser:</p>
         <div class="code-block">
           <pre><code><span class="prompt">$</span> cd my-project
-<span class="prompt">$</span> plansync init</code></pre>
+<span class="prompt">$</span> plansync init
+<span class="prompt">></span> Press Enter to authenticate in your browser...</code></pre>
         </div>
-        <p>Create a token at <a href="https://github.com/settings/tokens/new">github.com/settings/tokens/new</a> with <code>repo</code>, <code>issues</code>, and <code>project</code> scopes. Paste it into the prompt — PlanSync validates it and saves it to <code>.plansync/config.json</code>.</p>
-        <p>No token handy? Just press <strong>Enter</strong> and PlanSync falls back to browser-based device flow. A built-in Client ID is included — no setup needed.</p>
+        <p>PlanSync will show you a URL and a code. Visit the URL, enter the code, and click <strong>Authorize</strong>. No account setup, no environment variables — a built-in Client ID is included.</p>
+        <p>Don't want to use the browser? Paste a <a href="https://github.com/settings/tokens/new">Personal Access Token</a> with <code>repo</code>, <code>issues</code>, and <code>project</code> scopes instead.</p>
 
         <h2 id="errors">Common errors</h2>
         <table>

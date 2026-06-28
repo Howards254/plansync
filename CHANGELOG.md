@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4 — 2026-06-27
+
+- **Device flow is primary** — press Enter to authenticate in your browser; paste a PAT as fallback
+- **Built-in Client ID** included — no setup whatsoever for the default auth path
+
 ## 0.1.3 — 2026-06-27
 
 - **PAT-first auth** — `plansync init` prompts for a Personal Access Token; press Enter to fall back to device flow
