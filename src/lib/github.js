@@ -2,8 +2,16 @@ const { Octokit } = require('@octokit/rest');
 const { createOAuthDeviceAuth } = require('@octokit/auth-oauth-device');
 const { execSync } = require('child_process');
 
+const FALLBACK_CLIENT_ID = 'Ov23lizP5Fqo2bK78rbN';
+
 function getClientId(config = {}) {
-  return process.env.PLANSYNC_GITHUB_CLIENT_ID || config.githubClientId || null;
+  return process.env.PLANSYNC_GITHUB_CLIENT_ID || config.githubClientId || FALLBACK_CLIENT_ID;
+}
+
+async function verifyPAT(token) {
+  const octokit = new Octokit({ auth: token });
+  const { data } = await octokit.users.getAuthenticated();
+  return data.login;
 }
 
 async function authenticate(clientId, onVerification) {
@@ -46,4 +54,4 @@ function checkRemote(root) {
   }
 }
 
-module.exports = { authenticate, createOctokit, getGitHubRemote, checkRemote, getClientId };
+module.exports = { authenticate, createOctokit, getGitHubRemote, checkRemote, getClientId, verifyPAT };

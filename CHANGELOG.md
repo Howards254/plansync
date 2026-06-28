@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3 — 2026-06-27
+
+- **PAT-first auth** — `plansync init` prompts for a Personal Access Token; press Enter to fall back to device flow
+- **Built-in Client ID** — no OAuth App setup needed for device flow; a default Client ID is bundled
+- **verifyPAT()** — validates token by calling GitHub API and returns the authenticated username
+
 ## 0.1.2 — 2026-06-27
 
 - **Interactive client ID prompt** — `plansync init` no longer requires `PLANSYNC_GITHUB_CLIENT_ID` env var; prompts for it if missing and saves to config

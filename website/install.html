@@ -81,28 +81,22 @@
         <ul>
           <li><strong>Node.js 18+</strong> — PlanSync runs on any LTS version of Node.js</li>
           <li><strong>A GitHub account</strong> — with a repository you want to manage</li>
-          <li><strong>A GitHub OAuth App</strong> — create one at <a href="https://github.com/settings/developers">github.com/settings/developers</a> (no callback URL needed for device flow)</li>
         </ul>
 
-        <h2 id="env-vars">Set environment variable (optional)</h2>
-        <div class="code-block">
-          <pre><code><span class="prompt">$</span> export PLANSYNC_GITHUB_CLIENT_ID=your_github_oauth_client_id</code></pre>
-        </div>
-        <p>If you skip this, <code>plansync init</code> will prompt you to paste the Client ID interactively. It's saved to <code>.plansync/config.json</code> either way — you only need to do this once.</p>
-
-        <h2 id="initialize">Initialize</h2>
-        <p>Navigate to your GitHub repository and run:</p>
+        <h2 id="auth">Authenticate</h2>
+        <p>Run <code>plansync init</code> in your project and paste a GitHub Personal Access Token when prompted:</p>
         <div class="code-block">
           <pre><code><span class="prompt">$</span> cd my-project
 <span class="prompt">$</span> plansync init</code></pre>
         </div>
-        <p>Follow the device-code authentication flow. PlanSync will save your credentials locally and scaffold the project.</p>
+        <p>Create a token at <a href="https://github.com/settings/tokens/new">github.com/settings/tokens/new</a> with <code>repo</code>, <code>issues</code>, and <code>project</code> scopes. Paste it into the prompt — PlanSync validates it and saves it to <code>.plansync/config.json</code>.</p>
+        <p>No token handy? Just press <strong>Enter</strong> and PlanSync falls back to browser-based device flow. A built-in Client ID is included — no setup needed.</p>
 
-        <h2 id="errors">Common install errors</h2>
+        <h2 id="errors">Common errors</h2>
         <table>
           <tr><th>Error</th><th>Fix</th></tr>
-          <tr><td><code>PLANSYNC_GITHUB_CLIENT_ID not set</code></td><td>Create a GitHub OAuth App and export the client ID</td></tr>
           <tr><td><code>No git remote "origin"</code></td><td>Push your repo to GitHub first</td></tr>
+          <tr><td><code>Invalid token</code></td><td>Generate a new token at <a href="https://github.com/settings/tokens/new">github.com/settings/tokens/new</a> with repo + issues + project scopes</td></tr>
           <tr><td><code>Permission denied</code></td><td>Use <code>sudo npm install -g</code> or fix your npm permissions</td></tr>
         </table>
       </div>
@@ -111,8 +105,7 @@
         <h4>On this page</h4>
         <ul>
           <li><a href="#prerequisites">Prerequisites</a></li>
-          <li><a href="#env-vars">Environment variables</a></li>
-          <li><a href="#initialize">Initialize</a></li>
+          <li><a href="#auth">Authenticate</a></li>
           <li><a href="#errors">Common errors</a></li>
         </ul>
       </aside>

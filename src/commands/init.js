@@ -30,47 +30,71 @@ async function init() {
   }
 
   const cfg = config.read(root);
-  let clientId = github.getClientId(cfg);
-  if (!clientId) {
-    console.log('PlanSync needs a GitHub OAuth App Client ID to authenticate with GitHub.');
-    console.log('Create one at https://github.com/settings/developers (no callback URL needed).\n');
-    clientId = await ask('Paste your GitHub OAuth App Client ID: ');
-    if (!clientId) {
-      console.error('No Client ID provided. Run `plansync init` again.');
+
+  // --- Authentication ---
+  console.log('PlanSync needs a GitHub token to create Issues and manage your repo.');
+  console.log();
+  console.log('Option 1 (recommended): Create a Personal Access Token');
+  console.log('  1. Visit https://github.com/settings/tokens/new');
+  console.log('  2. Check repo, issues, project scopes');
+  console.log('  3. Generate and copy the token');
+  console.log();
+  console.log('Option 2: Browser-based device flow (requires an OAuth App)');
+  console.log();
+
+  const answer = await ask('Paste your token here, or press Enter for browser auth: ');
+
+  let token;
+  let username;
+
+  if (answer) {
+    // PAT flow
+    token = answer;
+    console.log('\nVerifying token...');
+    try {
+      username = await github.verifyPAT(token);
+      console.log('Authenticated as: %s', username);
+    } catch (err) {
+      console.error('Invalid token: %s', err.message);
+      console.error('Generate a new token at https://github.com/settings/tokens/new');
+      process.exit(1);
+    }
+  } else {
+    // Device flow fallback
+    const clientId = github.getClientId(cfg);
+    console.log('\nStarting browser authentication...');
+    try {
+      token = await github.authenticate(clientId, (verification) => {
+        console.log();
+        console.log('Visit: %s', verification.verification_uri);
+        console.log('Code:  %s', verification.user_code);
+        console.log();
+      });
+      username = await github.verifyPAT(token);
+      console.log('Authenticated as: %s', username);
+    } catch (err) {
+      if (err.status === 404) {
+        console.error('Authentication failed: invalid Client ID.');
+        console.error('Set PLANSYNC_GITHUB_CLIENT_ID env var to your own OAuth App Client ID.');
+      } else if (err.status === 401) {
+        console.error('Authentication failed: the device code was denied or expired.');
+        console.error('Run `plansync init` again.');
+      } else {
+        console.error('Authentication failed: %s', err.message);
+      }
       process.exit(1);
     }
   }
 
-  console.log('Authenticating with GitHub...');
-  let token;
-  try {
-    token = await github.authenticate(clientId, (verification) => {
-      console.log();
-      console.log('To authenticate, visit: %s', verification.verification_uri);
-      console.log('And enter the code: %s', verification.user_code);
-      console.log();
-    });
-  } catch (err) {
-    if (err.status === 404) {
-      console.error('Authentication failed: invalid GitHub OAuth App client ID.');
-      console.error('Check that PLANSYNC_GITHUB_CLIENT_ID is correct and the OAuth App exists.');
-    } else if (err.status === 401) {
-      console.error('Authentication failed: the device code was denied or expired.');
-      console.error('Run `plansync init` again to restart the authentication flow.');
-    } else {
-      console.error('Authentication failed: %s', err.message);
-    }
-    process.exit(1);
-  }
   console.log('Authentication successful.\n');
 
   cfg.githubToken = token;
-  cfg.githubClientId = clientId;
   cfg.owner = remote.owner;
   cfg.repo = remote.repo;
   config.write(root, cfg);
   console.log('Saved credentials to .plansync/config.json');
 
+  // --- Scaffold workflows ---
   const workflowsDir = path.join(root, '.github', 'workflows');
   if (!fs.existsSync(workflowsDir)) {
     fs.mkdirSync(workflowsDir, { recursive: true });
@@ -82,7 +106,6 @@ async function init() {
     const content = fs.readFileSync(path.join(templateDir, tmpl), 'utf-8');
     const targetName = tmpl.replace(/\.tmpl$/, '');
     const targetPath = path.join(workflowsDir, targetName);
-    // Only write if not already present (don't overwrite user modifications)
     if (!fs.existsSync(targetPath)) {
       fs.writeFileSync(targetPath, content);
       console.log('Created .github/workflows/%s', targetName);
@@ -91,6 +114,7 @@ async function init() {
     }
   }
 
+  // --- Install post-merge hook ---
   const hooksDir = path.join(root, '.git', 'hooks');
   const hookTmpl = path.join(__dirname, '..', 'templates', 'hooks', 'post-merge.tmpl');
   if (fs.existsSync(hookTmpl)) {
@@ -105,13 +129,7 @@ async function init() {
     }
   }
 
-  const planPath = path.join(root, 'PROJECT_PLAN.md');
-  if (!fs.existsSync(planPath)) {
-    fs.writeFileSync(planPath, '# Project Plan\n\nProject plan will be generated with `plansync plan`.\n');
-    console.log('Created PROJECT_PLAN.md');
-  }
-
-  // Write admin context for the admin's coding agent
+  // --- Write admin agent context ---
   const agentsPath = path.join(root, 'AGENTS.md');
   const adminContent = renderAdminContext(remote.owner, remote.repo);
   const merged = mergeOrWrite(agentsPath, adminContent);

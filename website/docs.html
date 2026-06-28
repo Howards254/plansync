@@ -77,7 +77,7 @@
 
         <h3><code>plansync init</code></h3>
         <p>Authenticate with GitHub and scaffold the project brain.</p>
-        <p>Verifies git remote, runs device-code OAuth, saves credentials to <code>.plansync/config.json</code>, copies GitHub Actions to <code>.github/workflows/</code>, installs a post-merge git hook, creates a placeholder <code>PROJECT_PLAN.md</code>, and writes <code>AGENTS.md</code> with PlanSync planning instructions for your coding agent.</p>
+        <p>Prompts for a GitHub Personal Access Token (or falls back to browser-based device flow if you press Enter). Saves credentials to <code>.plansync/config.json</code>, copies GitHub Actions to <code>.github/workflows/</code>, installs a post-merge git hook, creates a placeholder <code>PROJECT_PLAN.md</code>, and writes <code>AGENTS.md</code> with PlanSync planning instructions for your coding agent.</p>
 
         <h3><code>plansync plan &lt;description&gt;</code></h3>
         <p>Generate a structured project plan. After <code>plansync init</code>, your coding agent reads <code>AGENTS.md</code> and writes <code>.plansync/plan.json</code> directly — no API keys needed, just brainstorm with your agent and run <code>plansync delegate</code>.</p>
