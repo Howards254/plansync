@@ -93,6 +93,18 @@ async function init() {
   config.write(root, cfg);
   console.log('Saved credentials to .plansync/config.json');
 
+  // --- Ensure .plansync/config.json is gitignored ---
+  const gitignorePath = path.join(root, '.gitignore');
+  const gitignoreEntry = '.plansync/config.json';
+  let gitignore = '';
+  if (fs.existsSync(gitignorePath)) {
+    gitignore = fs.readFileSync(gitignorePath, 'utf-8');
+  }
+  if (!gitignore.split('\n').map(l => l.trim()).includes(gitignoreEntry)) {
+    fs.appendFileSync(gitignorePath, '\n' + gitignoreEntry + '\n');
+    console.log('Added %s to .gitignore', gitignoreEntry);
+  }
+
   // --- Scaffold workflows ---
   const workflowsDir = path.join(root, '.github', 'workflows');
   if (!fs.existsSync(workflowsDir)) {

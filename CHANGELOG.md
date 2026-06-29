@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0 — 2026-06-27
+
+- **Fixed device flow scopes** — removed invalid `issues` and `project` scopes; `repo` alone covers everything
+- **Fixed project board creation** — uses `repoData.owner.node_id` instead of repo node ID for ownerId
+- **Auto-distribute delegation** — tasks are assigned round-robin to collaborators; review and reassign before committing
+- **Pre-assigned plans** — if `plan.json` tasks have `assignedTo` set, uses those directly
+- **Gitignore secrets** — `.plansync/config.json` added to `.gitignore` during init; excluded from git add in delegate
+- **`plansync clean`** — new command to remove all PlanSync files, markers, and hooks
+
 ## 0.1.4 — 2026-06-27
 
 - **Device flow is primary** — press Enter to authenticate in your browser; paste a PAT as fallback

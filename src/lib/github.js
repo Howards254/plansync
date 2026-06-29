@@ -18,7 +18,7 @@ async function authenticate(clientId, onVerification) {
   const auth = createOAuthDeviceAuth({
     clientType: 'oauth-app',
     clientId,
-    scopes: ['repo', 'issues', 'project'],
+    scopes: ['repo'],
     onVerification,
   });
   const { token } = await auth({});

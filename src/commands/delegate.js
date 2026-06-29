@@ -32,45 +32,74 @@ function displayPlan(plan) {
   }
 }
 
-async function getAssignments(plan, octokit, owner, repo) {
+function printAssignmentsSummary(plan, assignments) {
+  console.log('\nTask assignments:');
+  for (const task of plan.tasks) {
+    const a = (assignments[task.id] || '(unassigned)').padEnd(22);
+    console.log('  %s  →  %s  %s', task.id.padEnd(6), a, task.title);
+  }
+}
+
+async function getAssignments(plan, octokit, owner, repo, authUsername) {
   console.log('\nFetching repo collaborators...');
   let collaborators;
   try {
     const { data } = await octokit.repos.listCollaborators({ owner, repo, affiliation: 'all' });
     collaborators = data.filter(c => c.permissions && c.permissions.push);
+    if (collaborators.length > 0) {
+      console.log('Collaborators with push access:');
+      for (const c of collaborators) {
+        console.log('  %s%s', c.login, c.login === authUsername ? ' (you)' : '');
+      }
+    }
   } catch (err) {
-    console.error('Failed to fetch collaborators:', err.message);
-    console.log('Continuing without collaborator list — you can type GitHub usernames manually.');
-    collaborators = [];
+    console.log('  Could not fetch collaborator list — will assign all tasks to you.');
+    collaborators = null;
   }
 
-  if (collaborators.length > 0) {
-    console.log('Collaborators with push access:');
-    for (const c of collaborators) {
-      console.log('  %s', c.login);
-    }
+  // If plan tasks already have assignedTo set, use those
+  const preAssigned = plan.tasks.length > 0 && plan.tasks.every(t => t.assignedTo);
+  if (preAssigned) {
+    const assignments = {};
+    for (const task of plan.tasks) assignments[task.id] = task.assignedTo;
+    printAssignmentsSummary(plan, assignments);
+    const ok = await ask('\nUse these plan assignments? (Y/n): ');
+    if (ok.toLowerCase() !== 'n') return assignments;
   }
 
-  console.log('\nTask assignments:');
-  const assignments = {};
-
-  for (const task of plan.tasks) {
-    const answer = await ask(`Assign ${task.id} (${task.title}) to which GitHub user? [type username or 'auto']: `);
-    if (answer.toLowerCase() === 'auto' && collaborators.length > 0) {
-      const existing = Object.values(assignments);
-      const unassigned = collaborators.find(c => !existing.includes(c.login));
-      assignments[task.id] = unassigned ? unassigned.login : collaborators[0].login;
-      console.log('  → %s auto-assigned to %s', task.id, assignments[task.id]);
-    } else if (answer.trim()) {
-      assignments[task.id] = answer.trim();
-      console.log('  → %s assigned to %s', task.id, answer.trim());
+  // Auto-distribute, then allow reassignment
+  let assignments = {};
+  while (true) {
+    if (collaborators && collaborators.length > 0) {
+      let idx = 0;
+      for (const task of plan.tasks) {
+        assignments[task.id] = collaborators[idx % collaborators.length].login;
+        idx++;
+      }
     } else {
-      assignments[task.id] = '';
-      console.log('  → %s left unassigned', task.id);
+      for (const task of plan.tasks) assignments[task.id] = authUsername;
+    }
+
+    printAssignmentsSummary(plan, assignments);
+    const ok = await ask('\nApprove these assignments? (Y/n): ');
+    if (ok.toLowerCase() !== 'n') return assignments;
+
+    // Reassignment loop
+    while (true) {
+      const input = await ask('Enter task ID to reassign (or "done" to finish): ');
+      if (input.toLowerCase() === 'done') break;
+      const task = plan.tasks.find(t => t.id === input);
+      if (!task) {
+        console.log('  Unknown task ID: %s', input);
+        continue;
+      }
+      const user = await ask('  Assign %s to: ', task.id);
+      if (user.trim()) {
+        assignments[task.id] = user.trim();
+        console.log('  %s → %s', task.id, user.trim());
+      }
     }
   }
-
-  return assignments;
 }
 
 async function createIssues(plan, assignments, octokit, owner, repo) {
@@ -129,7 +158,7 @@ async function createProjectBoard(plan, assignments, issues, octokit, owner, rep
     const projectName = `${plan.title} — PlanSync`;
 
     const { data: repoData } = await octokit.repos.get({ owner, repo });
-    const repoNodeId = repoData.node_id;
+    const ownerNodeId = repoData.owner.node_id;
 
     const createMutation = `
       mutation($input: CreateProjectV2Input!) {
@@ -145,7 +174,7 @@ async function createProjectBoard(plan, assignments, issues, octokit, owner, rep
 
     const createResult = await octokit.graphql(createMutation, {
       input: {
-        ownerId: repoNodeId,
+        ownerId: ownerNodeId,
         title: projectName,
       },
     });
@@ -260,7 +289,8 @@ function commitAndPush(root, message, usePr) {
   console.log('\nCommitting changes...');
 
   try {
-    execSync('git add -A', { cwd: root, stdio: 'pipe' });
+    execSync('git add --update .', { cwd: root, stdio: 'pipe' });
+    execSync('git add --ignore-errors .gitignore .github .plansync/scopes AGENTS.md PROJECT_PLAN.md', { cwd: root, stdio: 'pipe' });
     execSync(`git commit -m "${message.replace(/"/g, '\\"')}"`, { cwd: root, stdio: 'pipe' });
     console.log('  Committed.');
 
@@ -310,8 +340,16 @@ async function delegate(description) {
   const octokit = github.createOctokit(cfg.githubToken);
   const { owner, repo } = cfg;
 
+  // Resolve the authenticated username
+  let authUsername;
+  try {
+    authUsername = await github.verifyPAT(cfg.githubToken);
+  } catch {
+    authUsername = owner;
+  }
+
   // Phase 3a: Assign tasks
-  const assignments = await getAssignments(plan, octokit, owner, repo);
+  const assignments = await getAssignments(plan, octokit, owner, repo, authUsername);
 
   // Phase 3b: Create GitHub Issues
   console.log('\nCreating GitHub Issues...');

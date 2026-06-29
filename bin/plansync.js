@@ -6,6 +6,7 @@ const planCmd = require('../src/commands/plan');
 const delegateCmd = require('../src/commands/delegate');
 const statusCmd = require('../src/commands/status');
 const syncCmd = require('../src/commands/sync');
+const cleanCmd = require('../src/commands/clean');
 
 const program = new Command();
 
@@ -64,6 +65,16 @@ program
     if (opts.user) process.env.PLANSYNC_USER = opts.user;
     if (opts.reset) process.env.PLANSYNC_RESET = '1';
     syncCmd().catch(err => {
+      console.error(err.message);
+      process.exit(1);
+    });
+  });
+
+program
+  .command('clean')
+  .description('Remove all PlanSync files and markers from the project')
+  .action(() => {
+    cleanCmd().catch(err => {
       console.error(err.message);
       process.exit(1);
     });
