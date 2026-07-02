@@ -61,8 +61,7 @@ async function status() {
 
   // Print header
   console.log('Task      Status      Assignee      Scope');
-  console.log('───      ──────      ────────      ─────');
-  console.log();
+  console.log('────      ──────      ────────      ─────');
 
   for (const task of plan.tasks) {
     const live = liveStates[task.id];

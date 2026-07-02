@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.1 — 2026-06-27
+
+- **Interactive browser dialog** — countdown 5s then auto-opens browser; user can open, copy URL, or cancel
+- **Fixed delegation reassignment** — case-insensitive task ID matching; reassignments no longer overwritten by re-distribution
+- **Fixed printf bug** — `%s` replaced with template literals throughout
+- **Untracked config.json** — `git rm --cached` removes previously committed `.plansync/config.json`
+- **Fixed scopes** — `['repo', 'project']` so Issues + Project board both work
+- **Deprecation suppressed** — Octokit uses `X-GitHub-Api-Version: 2022-11-28`
+- **Status table** — header separators aligned
+
 ## 0.2.0 — 2026-06-27
 
 - **Fixed device flow scopes** — removed invalid `issues` and `project` scopes; `repo` alone covers everything

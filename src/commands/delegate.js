@@ -49,7 +49,7 @@ async function getAssignments(plan, octokit, owner, repo, authUsername) {
     if (collaborators.length > 0) {
       console.log('Collaborators with push access:');
       for (const c of collaborators) {
-        console.log('  %s%s', c.login, c.login === authUsername ? ' (you)' : '');
+        console.log(`  ${c.login}${c.login === authUsername ? ' (you)' : ''}`);
       }
     }
   } catch (err) {
@@ -59,44 +59,45 @@ async function getAssignments(plan, octokit, owner, repo, authUsername) {
 
   // If plan tasks already have assignedTo set, use those
   const preAssigned = plan.tasks.length > 0 && plan.tasks.every(t => t.assignedTo);
+  let assignments = {};
+
   if (preAssigned) {
-    const assignments = {};
     for (const task of plan.tasks) assignments[task.id] = task.assignedTo;
     printAssignmentsSummary(plan, assignments);
     const ok = await ask('\nUse these plan assignments? (Y/n): ');
     if (ok.toLowerCase() !== 'n') return assignments;
   }
 
-  // Auto-distribute, then allow reassignment
-  let assignments = {};
-  while (true) {
-    if (collaborators && collaborators.length > 0) {
-      let idx = 0;
-      for (const task of plan.tasks) {
-        assignments[task.id] = collaborators[idx % collaborators.length].login;
-        idx++;
-      }
-    } else {
-      for (const task of plan.tasks) assignments[task.id] = authUsername;
+  // Auto-distribute once
+  if (collaborators && collaborators.length > 0) {
+    let idx = 0;
+    for (const task of plan.tasks) {
+      assignments[task.id] = collaborators[idx % collaborators.length].login;
+      idx++;
     }
+  } else {
+    for (const task of plan.tasks) assignments[task.id] = authUsername;
+  }
 
+  // Review loop: show, approve, or reassign
+  while (true) {
     printAssignmentsSummary(plan, assignments);
     const ok = await ask('\nApprove these assignments? (Y/n): ');
     if (ok.toLowerCase() !== 'n') return assignments;
 
-    // Reassignment loop
+    // Reassignment loop — modifies assignments in-place
     while (true) {
       const input = await ask('Enter task ID to reassign (or "done" to finish): ');
       if (input.toLowerCase() === 'done') break;
-      const task = plan.tasks.find(t => t.id === input);
+      const task = plan.tasks.find(t => t.id.toUpperCase() === input.toUpperCase());
       if (!task) {
-        console.log('  Unknown task ID: %s', input);
+        console.log(`  Unknown task ID: ${input}`);
         continue;
       }
-      const user = await ask('  Assign %s to: ', task.id);
+      const user = await ask(`  Assign ${task.id} to: `);
       if (user.trim()) {
         assignments[task.id] = user.trim();
-        console.log('  %s → %s', task.id, user.trim());
+        console.log(`  ${task.id} → ${user.trim()}`);
       }
     }
   }
@@ -289,8 +290,8 @@ function commitAndPush(root, message, usePr) {
   console.log('\nCommitting changes...');
 
   try {
-    execSync('git add --update .', { cwd: root, stdio: 'pipe' });
-    execSync('git add --ignore-errors .gitignore .github .plansync/scopes AGENTS.md PROJECT_PLAN.md', { cwd: root, stdio: 'pipe' });
+    execSync('git add -A', { cwd: root, stdio: 'pipe' });
+    execSync('git rm --cached --ignore-unmatch .plansync/config.json 2>/dev/null || true', { cwd: root, stdio: 'pipe' });
     execSync(`git commit -m "${message.replace(/"/g, '\\"')}"`, { cwd: root, stdio: 'pipe' });
     console.log('  Committed.');
 

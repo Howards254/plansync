@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const readline = require('readline');
+const { execSync } = require('child_process');
 const config = require('../lib/config');
 const github = require('../lib/github');
 const { renderAdminContext, mergeOrWrite } = require('../lib/contextFiles');
@@ -48,9 +49,9 @@ async function init() {
     console.log('\nVerifying token...');
     try {
       username = await github.verifyPAT(token);
-      console.log('Authenticated as: %s', username);
+      console.log(`Authenticated as: ${username}`);
     } catch (err) {
-      console.error('Invalid token: %s', err.message);
+      console.error(`Invalid token: ${err.message}`);
       console.error('Generate a new token at https://github.com/settings/tokens/new');
       process.exit(1);
     }
@@ -62,25 +63,20 @@ async function init() {
       process.exit(1);
     }
 
-    console.log();
     try {
-      token = await github.authenticate(clientId, (verification) => {
-        console.log('1. Visit %s', verification.verification_uri);
-        console.log('2. Enter code: %s', verification.user_code);
-        console.log('3. Authorize PlanSync');
-        console.log();
-      });
+      token = await github.authenticateWithDialog(clientId);
       username = await github.verifyPAT(token);
-      console.log('Authenticated as: %s', username);
+      console.log(`Authenticated as: ${username}`);
     } catch (err) {
-      if (err.status === 404) {
+      if (err.message === 'Authentication cancelled.') {
+        console.log('Cancelled.');
+      } else if (err.status === 404) {
         console.error('Authentication failed: invalid Client ID.');
       } else if (err.status === 401) {
         console.error('Authentication failed: the code was denied or expired.');
       } else {
-        console.error('Authentication failed: %s', err.message);
+        console.error(`Authentication failed: ${err.message}`);
       }
-      console.error('Run `plansync init` again or paste a Personal Access Token instead.');
       process.exit(1);
     }
   }
@@ -93,7 +89,7 @@ async function init() {
   config.write(root, cfg);
   console.log('Saved credentials to .plansync/config.json');
 
-  // --- Ensure .plansync/config.json is gitignored ---
+  // --- Ensure .plansync/config.json is gitignored and untracked ---
   const gitignorePath = path.join(root, '.gitignore');
   const gitignoreEntry = '.plansync/config.json';
   let gitignore = '';
@@ -102,7 +98,14 @@ async function init() {
   }
   if (!gitignore.split('\n').map(l => l.trim()).includes(gitignoreEntry)) {
     fs.appendFileSync(gitignorePath, '\n' + gitignoreEntry + '\n');
-    console.log('Added %s to .gitignore', gitignoreEntry);
+    console.log(`Added ${gitignoreEntry} to .gitignore`);
+  }
+  // Untrack if it was previously committed
+  try {
+    execSync(`git rm --cached ${gitignoreEntry}`, { cwd: root, stdio: 'pipe' });
+    console.log(`Untracked ${gitignoreEntry}`);
+  } catch {
+    // Not tracked — nothing to untrack
   }
 
   // --- Scaffold workflows ---
