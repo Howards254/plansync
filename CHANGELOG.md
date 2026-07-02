@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.5 — 2026-06-27
+
+- **README** — added prominent website link at top
+
 ## 0.2.4 — 2026-06-27
 
 - **README rewrite** — comprehensive guide with installation, quick start (new + existing project), architecture, all commands, authentication, context files, FAQ, and contributing

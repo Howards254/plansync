@@ -6,6 +6,8 @@
 
 **Coordination and accountability layer for AI-assisted development teams.**
 
+> **Website:** [plansync.freedev.app](https://plansync.freedev.app) — install guide, docs, FAQ, and full command reference
+
 PlanSync lets a project owner split a repo into scoped tasks, assign each task to a developer or AI agent, and enforce boundaries at the filesystem level. Every agent can read the whole project for context, but can only write to the files they're assigned to.
 
 No server. No proxy. No API gate. Just a CLI tool, a git hook, and a GitHub Action.
