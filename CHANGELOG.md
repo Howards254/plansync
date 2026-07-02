@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.4 — 2026-06-27
+
+- **README rewrite** — comprehensive guide with installation, quick start (new + existing project), architecture, all commands, authentication, context files, FAQ, and contributing
+- **LICENSE** — updated copyright to Howards254
+
 ## 0.2.3 — 2026-06-27
 
 - **install.html** — added "Next steps after init" with two-column guide (new project vs existing project)
