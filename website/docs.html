@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Documentation — PlanSync</title>
-  <meta name="description" content="PlanSync CLI commands reference: init, delegate, status, sync, plan, clean. Full documentation for all features.">
+  <meta name="description" content="PlanSync CLI commands reference: init, delegate, status, sync, plan, clean. Full documentation with examples for all features.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -78,44 +78,121 @@
 
         <h2 id="commands">Commands</h2>
 
-        <table>
-          <tr><th>Command</th><th>Use case</th><th>Details</th></tr>
-          <tr>
-            <td><code>plansync init</code></td>
-            <td>Set up PlanSync on a repo</td>
-            <td>Authenticates with GitHub via device flow (press Enter, browser opens with 5s countdown) or by pasting a PAT. Saves credentials to <code>.plansync/config.json</code>, adds it to <code>.gitignore</code> (and untracks if previously committed). Copies CI workflows (<code>scope-check.yml</code>, <code>silence-detection.yml</code>, <code>publish.yml</code>) and a post-merge git hook. Writes <code>AGENTS.md</code> with planning instructions for your coding agent.</td>
-          </tr>
-          <tr>
-            <td><code>plansync delegate</code></td>
-            <td>Push a plan to GitHub</td>
-            <td>Reads <code>.plansync/plan.json</code> (written by your agent). Auto-distributes tasks round-robin to repo collaborators or all to you. Shows the assignment table for review — you can reassign individual tasks before approving. Creates: GitHub Issues per task with scope + acceptance criteria, a Project v2 board, scope manifests (<code>.plansync/scopes/*.json</code>), context files for every agent tool, and <code>PROJECT_PLAN.md</code>. Commits all changes and pushes.</td>
-          </tr>
-          <tr>
-            <td><code>plansync status</code></td>
-            <td>Check plan + live Issue states</td>
-            <td>Prints every task with its plan status (ready / in progress / done / blocked), GitHub Issue number and state (open / closed), assignee, scope globs, and any blocking dependencies. Shows a summary count at the end.</td>
-          </tr>
-          <tr>
-            <td><code>plansync sync [--user &lt;name&gt;]</code></td>
-            <td>Lock files to your assigned scope</td>
-            <td>Makes files matching your task scopes writable (<code>chmod 644</code>), everything else read-only (<code>chmod 444</code>). Username resolved via <code>--user</code> flag, <code>PLANSYNC_USER</code> env var, or auto-detected from GitHub token. Validates that you're a real assignee in the plan. Use <code>--reset</code> to restore all files to writable. Skips <code>.git/</code>, <code>node_modules/</code>, and <code>.plansync/</code>.</td>
-          </tr>
-          <tr>
-            <td><code>plansync plan &lt;description&gt;</code></td>
-            <td>LLM-assisted plan drafting (optional)</td>
-            <td>Requires <code>ANTHROPIC_API_KEY</code>. Sends your project description to an LLM which returns tasks with scope globs, dependencies, and acceptance criteria. Supports an interactive loop: approve, edit with feedback (regenerates), or cancel. Saves the result to <code>.plansync/plan.json</code>.</td>
-          </tr>
-          <tr>
-            <td><code>plansync clean</code></td>
-            <td>Uninstall PlanSync from a project</td>
-            <td>Removes <code>.plansync/</code> directory, <code>.github/workflows/publish.yml</code>, <code>scope-check.yml</code>, <code>silence-detection.yml</code>, the post-merge git hook, <code>PROJECT_PLAN.md</code>, and strips <code>&lt;!-- plansync --&gt;</code> blocks from all context files. Removes <code>.plansync/config.json</code> from <code>.gitignore</code>. After clean, run <code>plansync init</code> to start fresh.</td>
-          </tr>
-        </table>
+        <h3 id="cmd-init"><code>plansync init</code></h3>
+        <p>Sets up PlanSync on a repository. Authenticates with GitHub, scaffolds CI workflows and a post-merge hook, writes <code>AGENTS.md</code> for your coding agent, and ensures <code>.plansync/config.json</code> is gitignored (untracks it if previously committed).</p>
+        <div class="code-block">
+          <pre><code><span class="prompt">$</span> plansync init
+<span class="comment">  Enter to open browser → authorize → done</span>
+<span class="comment">  ✓ Authenticated as your-github-username</span>
+<span class="comment">  ✓ .plansync/config.json saved and gitignored</span>
+<span class="comment">  ✓ Workflows installed (.github/workflows/scope-check.yml, ...)</span>
+<span class="comment">  ✓ Post-merge hook installed (.git/hooks/post-merge)</span>
+<span class="comment">  ✓ AGENTS.md written</span></code></pre>
+        </div>
+        <p>To use a PAT instead of the browser flow, paste the token at the prompt. The token needs <code>repo</code> and <code>project</code> scopes. Generate one at <a href="https://github.com/settings/tokens/new">github.com/settings/tokens/new</a>.</p>
+
+        <h3 id="cmd-delegate"><code>plansync delegate</code></h3>
+        <p>Reads <code>.plansync/plan.json</code> (written by your agent) and pushes it to GitHub as Issues, a Project v2 board, scope manifests, and per-agent context files. Auto-distributes tasks round-robin to repo collaborators. Shows an assignment review table so you can reassign before approving.</p>
+        <div class="code-block">
+          <pre><code><span class="prompt">$</span> plansync delegate
+
+<span class="comment">  Tasks to assign:</span>
+<span class="comment">  T001  Set up auth              scope: src/auth/**</span>
+<span class="comment">  T002  Build landing page       scope: src/pages/**</span>
+<span class="comment">  T003  Write API routes         scope: src/api/**, backend/**</span>
+
+<span class="comment">  Proposed assignments:</span>
+<span class="comment">  ┌────────┬─────────────┬──────────┐</span>
+<span class="comment">  │ Task   │ Assignee    │ Scope    │</span>
+<span class="comment">  ├────────┼─────────────┼──────────┤</span>
+<span class="comment">  │ T001   │ howards254  │ src/auth │</span>
+<span class="comment">  │ T002   │ janedoe     │ src/pages│</span>
+<span class="comment">  │ T003   │ howards254  │ src/api  │</span>
+<span class="comment">  └────────┴─────────────┴──────────┘</span>
+
+<span class="comment">  Reassign? (task name or Enter to approve):</span>
+<span class="comment">  ✓ Creating Issues...</span>
+<span class="comment">  ✓ Creating Project board...</span>
+<span class="comment">  ✓ Writing scope manifests...</span>
+<span class="comment">  ✓ Writing context files...</span>
+<span class="comment">  ✓ Committing and pushing...</span></code></pre>
+        </div>
+
+        <h3 id="cmd-status"><code>plansync status</code></h3>
+        <p>Prints the plan alongside live GitHub Issue states. Shows each task's status (ready / in progress / done / blocked), assigned user, scope globs, Issue number, and blocking dependency chains. Ends with a summary count.</p>
+        <div class="code-block">
+          <pre><code><span class="prompt">$</span> plansync status
+
+<span class="comment">  T001  ◻ ready    howards254  #1  open   src/auth/**</span>
+<span class="comment">  T002  ◻ ready    janedoe     #2  open   src/pages/**</span>
+<span class="comment">  T003  ◆ blocked  howards254  #3  open   src/api/**  blocked by T002</span>
+<span class="comment">
+  Summary: 3 total · 2 ready · 1 blocked · 0 in progress · 0 done</span></code></pre>
+        </div>
+
+        <h3 id="cmd-sync"><code>plansync sync [--user &lt;name&gt;]</code></h3>
+        <p>Locks filesystem permissions to a collaborator's assigned scope. Files matching the user's task scopes become writable (<code>chmod 644</code>); everything else becomes read-only (<code>chmod 444</code>). Prevents accidental edits outside your scope. Username is resolved via <code>--user</code> flag, <code>PLANSYNC_USER</code> env var, or auto-detected from the GitHub token. Use <code>--reset</code> to restore all files to writable.</p>
+        <div class="code-block">
+          <pre><code><span class="prompt">$</span> plansync sync --user janedoe
+
+<span class="comment">  ✓ Set writable: src/pages/index.html</span>
+<span class="comment">  ✓ Set writable: src/pages/about.html</span>
+<span class="comment">  ✓ Set writable: src/pages/style.css</span>
+<span class="comment">  ✓ Set read-only: src/auth/login.js</span>
+<span class="comment">  ✓ Set read-only: src/api/routes.js</span>
+<span class="comment">  ✓ Set read-only: backend/server.js</span>
+<span class="comment">  Scope applied for janedoe (2 writable, 3 read-only, 0 skipped)</span>
+
+<span class="prompt">$</span> plansync sync --reset
+<span class="comment">  ✓ All files restored to writable</span></code></pre>
+        </div>
+        <p>Skips <code>.git/</code>, <code>node_modules/</code>, and <code>.plansync/</code> directories automatically. The CI scope-check Action serves as the real backstop; local permissions are an opt-in convenience.</p>
+
+        <h3 id="cmd-plan"><code>plansync plan &lt;description&gt;</code></h3>
+        <p>Optionally uses an LLM to draft a plan. Sends your project description to Claude (requires <code>ANTHROPIC_API_KEY</code>) and returns a structured plan with tasks, scopes, dependencies, and acceptance criteria. Supports an interactive review loop — approve, edit with feedback to regenerate, or cancel. Saves the result to <code>.plansync/plan.json</code>.</p>
+        <p>This command is entirely optional. You can skip it and have your agent write <code>.plansync/plan.json</code> directly by reading <code>AGENTS.md</code>.</p>
+        <div class="code-block">
+          <pre><code><span class="prompt">$</span> export ANTHROPIC_API_KEY=sk-ant-xxxxx
+
+<span class="prompt">$</span> plansync plan "Build a todo app with React frontend and Express backend"
+
+<span class="comment">  Generating plan...</span>
+<span class="comment">  ┌────────┬──────────────────────┬────────────────────┐</span>
+<span class="comment">  │ Task   │ Description          │ Scope              │</span>
+<span class="comment">  ├────────┼──────────────────────┼────────────────────┤</span>
+<span class="comment">  │ T001   │ Set up React + Vite  │ src/frontend/**    │</span>
+<span class="comment">  │ T002   │ Set up Express API   │ src/backend/**     │</span>
+<span class="comment">  │ T003   │ Connect frontend     │ src/frontend/**    │</span>
+<span class="comment">  │ T004   │ Write tests          │ tests/**           │</span>
+<span class="comment">  └────────┴──────────────────────┴────────────────────┘</span>
+
+<span class="comment">  Approve plan? (y/n/edit): edit</span>
+<span class="comment">  Your feedback: Add a Docker task</span>
+
+<span class="comment">  Regenerating...</span>
+<span class="comment">  Approve plan? (y/n/edit): y</span>
+<span class="comment">  ✓ Plan saved to .plansync/plan.json</span></code></pre>
+        </div>
+
+        <h3 id="cmd-clean"><code>plansync clean</code></h3>
+        <p>Completely removes PlanSync from a project. Deletes the <code>.plansync/</code> directory, removes workflow files (<code>scope-check.yml</code>, <code>silence-detection.yml</code>), the post-merge hook, and <code>PROJECT_PLAN.md</code>. Strips all <code>&lt;!-- plansync --&gt;</code> / <code>&lt;!-- end-plansync --&gt;</code> blocks from context files. Removes <code>.plansync/config.json</code> from <code>.gitignore</code>. After running <code>clean</code>, you can start fresh with <code>plansync init</code>.</p>
+        <div class="code-block">
+          <pre><code><span class="prompt">$</span> plansync clean
+
+<span class="comment">  ✓ Deleted .plansync/</span>
+<span class="comment">  ✓ Deleted .github/workflows/scope-check.yml</span>
+<span class="comment">  ✓ Deleted .github/workflows/silence-detection.yml</span>
+<span class="comment">  ✓ Deleted PROJECT_PLAN.md</span>
+<span class="comment">  ✓ Stripped plansync markers from AGENTS.md</span>
+<span class="comment">  ✓ Stripped plansync markers from CLAUDE.md</span>
+<span class="comment">  ✓ Stripped plansync markers from .cursorrules</span>
+<span class="comment">  ✓ Removed .plansync/config.json from .gitignore</span>
+<span class="comment">  PlanSync removed. Run 'plansync init' to start fresh.</span></code></pre>
+        </div>
 
         <h2 id="architecture">Architecture</h2>
 
         <p>PlanSync uses four layers:</p>
-
         <ol>
           <li><strong>Plan generation</strong> — After <code>plansync init</code>, your coding agent reads <code>AGENTS.md</code> and writes <code>.plansync/plan.json</code> with tasks, scope, and dependencies. You review, revise, approve.</li>
           <li><strong>GitHub synchronization</strong> — The <code>delegate</code> command writes the plan to GitHub Issues, a Project board, scope manifests, and per-agent context files.</li>
@@ -146,9 +223,7 @@
         </table>
 
         <p>Each file tells the agent its task description, scope globs, acceptance criteria, and dependencies. The agent can read the full project but is instructed to only write within its scope.</p>
-
         <p>All context files use <code>&lt;!-- plansync --&gt;</code> / <code>&lt;!-- end-plansync --&gt;</code> markers. If you already have custom instructions in these files (e.g. coding conventions, testing preferences), PlanSync appends to or updates its section in-place — your content is never overwritten.</p>
-
         <p><strong>Adding more agents:</strong> Drop a template file into <code>.plansync/templates/</code> and it will be rendered at delegate time. The filename becomes the output path (e.g., <code>.plansync/templates/.my-agent.md.tmpl</code> → <code>.my-agent.md</code>). All templates receive <code>projectTitle</code>, <code>taskDescription</code>, <code>scopeList</code>, <code>scopeGlobs</code>, <code>acceptanceList</code>, and <code>dependencyList</code> variables.</p>
 
       </div>
@@ -157,6 +232,12 @@
         <h4>On this page</h4>
         <ul>
           <li><a href="#commands">Commands</a></li>
+          <li><a href="#cmd-init"><code>init</code></a></li>
+          <li><a href="#cmd-delegate"><code>delegate</code></a></li>
+          <li><a href="#cmd-status"><code>status</code></a></li>
+          <li><a href="#cmd-sync"><code>sync</code></a></li>
+          <li><a href="#cmd-plan"><code>plan</code></a></li>
+          <li><a href="#cmd-clean"><code>clean</code></a></li>
           <li><a href="#architecture">Architecture</a></li>
           <li><a href="#context-files">Context files</a></li>
         </ul>

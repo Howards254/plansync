@@ -82,7 +82,7 @@
           <pre><code><span class="prompt">$</span> npm install -g plansync
 <span class="prompt">$</span> cd your-project
 <span class="prompt">$</span> plansync init
-<span class="comment"># Press Enter → browser opens → authorize → done</span></code></pre>
+<span class="comment">  Press Enter → browser opens → authorize → done</span></code></pre>
         </div>
 
         <h2 id="prerequisites">Prerequisites</h2>
@@ -101,6 +101,32 @@
         </ol>
         <p>Prefer a token? Paste a <a href="https://github.com/settings/tokens/new">Personal Access Token</a> with <code>repo</code> and <code>project</code> scopes at the prompt instead.</p>
 
+        <h2 id="next-steps">Next steps after init</h2>
+        <p>Once <code>plansync init</code> completes, what you do next depends on whether you're starting fresh or adopting an existing project:</p>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin:32px 0;">
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px;">
+            <h3 style="margin-bottom:8px;">Starting a new project</h3>
+            <ol style="padding-left:20px; display:flex; flex-direction:column; gap:12px;">
+              <li><strong>Create your repo</strong> on GitHub and <code>git push</code> to it</li>
+              <li><strong>Tell your agent</strong> to read <code>AGENTS.md</code> and write a plan to <code>.plansync/plan.json</code></li>
+              <li>Run <strong><code>plansync delegate</code></strong> — pushes Issues, board, scope files to GitHub, commits, and pushes</li>
+              <li>Each collaborator runs <strong><code>plansync sync</code></strong> to lock their scope</li>
+            </ol>
+          </div>
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px;">
+            <h3 style="margin-bottom:8px;">Adopting an existing project</h3>
+            <ol style="padding-left:20px; display:flex; flex-direction:column; gap:12px;">
+              <li><strong>Describe the next milestone</strong> to your agent — it will write a plan to <code>.plansync/plan.json</code></li>
+              <li>Run <strong><code>plansync delegate</code></strong> — same as new project: Issues, board, scope files</li>
+              <li>Each collaborator runs <strong><code>plansync sync</code></strong> to lock their scope</li>
+              <li>Change your mind? Run <strong><code>plansync clean</code></strong> to undo everything</li>
+            </ol>
+          </div>
+        </div>
+
+        <p>See the <a href="workflow.html">How it works</a> page for a full walkthrough with command examples.</p>
+
         <h2 id="errors">Common errors</h2>
         <table>
           <tr><th>Error</th><th>Fix</th></tr>
@@ -117,6 +143,7 @@
         <ul>
           <li><a href="#prerequisites">Prerequisites</a></li>
           <li><a href="#auth">Authentication</a></li>
+          <li><a href="#next-steps">Next steps</a></li>
           <li><a href="#errors">Common errors</a></li>
         </ul>
       </aside>

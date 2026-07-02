@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.3 — 2026-06-27
+
+- **install.html** — added "Next steps after init" with two-column guide (new project vs existing project)
+- **docs.html** — each command now has its own section with detailed explanation and a concrete terminal example
+- **Sidebar navigation** — docs.html sidebar links directly to each command anchor
+
 ## 0.2.2 — 2026-06-27
 
 - **Website redesign** — new workflow.html guide (new project vs existing project), streamlined install and docs pages
