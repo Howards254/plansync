@@ -1,6 +1,6 @@
 {
   "name": "plansync",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Coordination and accountability layer for AI-assisted development teams",
   "bin": {
     "plansync": "bin/plansync.js"

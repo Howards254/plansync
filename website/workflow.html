@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How it works — PlanSync</title>
+  <meta name="description" content="Step-by-step guide for using PlanSync on a new project or an existing project. All commands with real examples.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/" class="logo">
+        <svg width="28" height="28" viewBox="0 0 64 64" fill="none">
+          <defs>
+            <linearGradient id="lg1" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#6366f1"/>
+              <stop offset="1" stop-color="#818cf8"/>
+            </linearGradient>
+            <linearGradient id="lg2" x1="36" y1="4" x2="60" y2="28" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#6366f1"/>
+              <stop offset="1" stop-color="#818cf8"/>
+            </linearGradient>
+            <linearGradient id="lg3" x1="20" y1="36" x2="44" y2="60" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#6366f1"/>
+              <stop offset="1" stop-color="#818cf8"/>
+            </linearGradient>
+          </defs>
+          <rect x="4" y="4" width="24" height="24" rx="5" fill="url(#lg1)"/>
+          <rect x="36" y="4" width="24" height="24" rx="5" fill="url(#lg2)" opacity="0.65"/>
+          <rect x="20" y="36" width="24" height="24" rx="5" fill="url(#lg3)" opacity="0.45"/>
+          <rect x="24" y="24" width="16" height="16" rx="4" fill="#a5b4fc" opacity="0.6"/>
+        </svg>
+        <span>PlanSync</span>
+      </a>
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="install.html">Install</a>
+        <a href="workflow.html" class="active">How it works</a>
+        <a href="docs.html">Docs</a>
+        <a href="faq.html">FAQ</a>
+      </div>
+      <a href="https://github.com/howards254/plansync" class="github-link">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+      </a>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="4" y1="7" x2="20" y2="7"/>
+          <line x1="4" y1="12" x2="20" y2="12"/>
+          <line x1="4" y1="17" x2="20" y2="17"/>
+        </svg>
+      </button>
+    </nav>
+  </header>
+
+  <div class="nav-overlay" id="nav-overlay">
+    <div class="overlay-content">
+      <a href="/">Home</a>
+      <a href="install.html">Install</a>
+      <a href="workflow.html">How it works</a>
+      <a href="docs.html">Docs</a>
+      <a href="faq.html">FAQ</a>
+      <a href="https://github.com/howards254/plansync" style="margin-top:auto; border-bottom:none; color:var(--primary);">GitHub</a>
+    </div>
+  </div>
+
+  <main>
+    <div class="page-header">
+      <h1>How PlanSync works</h1>
+    </div>
+
+    <div class="page-body">
+      <div class="doc-content">
+
+        <p>PlanSync is a CLI tool that turns a project plan into GitHub Issues, assigns scope permissions, and generates agent context files. Two common scenarios:</p>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin:32px 0;">
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px;">
+            <h3 style="margin-bottom:8px;">Starting a new project</h3>
+            <ol style="padding-left:20px; display:flex; flex-direction:column; gap:12px;">
+              <li><strong>Create a repo</strong> — <code>git init</code> + push to GitHub</li>
+              <li><strong>npm install -g plansync</strong> — install globally</li>
+              <li><strong>plansync init</strong> — authenticate, scaffold workflows, write <code>AGENTS.md</code></li>
+              <li><strong>Agent plans the work</strong> — your coding agent reads <code>AGENTS.md</code> and writes <code>.plansync/plan.json</code></li>
+              <li><strong>plansync delegate</strong> — Issues, Project board, context files, scope manifests, commit</li>
+              <li><strong>plansync sync</strong> — each collaborator locks to their task scope</li>
+            </ol>
+          </div>
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px;">
+            <h3 style="margin-bottom:8px;">Adopting an existing project</h3>
+            <ol style="padding-left:20px; display:flex; flex-direction:column; gap:12px;">
+              <li><strong>cd existing-project</strong> — already has a GitHub remote</li>
+              <li><strong>npm install -g plansync</strong> — install globally</li>
+              <li><strong>plansync init</strong> — re-authenticate, adds <code>.plansync/config.json</code> to <code>.gitignore</code></li>
+              <li><strong>Agent plans the refactor</strong> — describe the next milestone to your agent</li>
+              <li><strong>plansync delegate</strong> — same as new project</li>
+              <li><strong>plansync clean</strong> — undo everything if you change your mind</li>
+            </ol>
+          </div>
+        </div>
+
+        <h2 id="commands">All commands</h2>
+
+        <table>
+          <tr><th>Command</th><th>When to use</th><th>What it does</th></tr>
+          <tr>
+            <td><code>plansync init</code></td>
+            <td><strong>First time</strong> setting up PlanSync on a repo</td>
+            <td>Authenticates with GitHub (browser or PAT), saves credentials to <code>.plansync/config.json</code>, copies CI workflows to <code>.github/workflows/</code>, installs a post-merge git hook, writes <code>AGENTS.md</code> with planning instructions for your coding agent, and adds config to <code>.gitignore</code>.</td>
+          </tr>
+          <tr>
+            <td><code>plansync delegate</code></td>
+            <td><strong>Your plan is ready</strong> — agent has written <code>.plansync/plan.json</code></td>
+            <td>Shows the plan, asks for task assignments (auto-distribute to collaborators or per-task), then creates GitHub Issues, a Project v2 board, scope manifests (<code>.plansync/scopes/*.json</code>), context files per agent tool, and <code>PROJECT_PLAN.md</code>. Commits everything and pushes.</td>
+          </tr>
+          <tr>
+            <td><code>plansync status</code></td>
+            <td><strong>Any time</strong> — check what's happening</td>
+            <td>Prints the plan with live GitHub Issue states. Shows task status, assignee, scope globs, blocking dependency chains, and a summary count.</td>
+          </tr>
+          <tr>
+            <td><code>plansync sync [--user &lt;name&gt;]</code></td>
+            <td><strong>Collaborator joining</strong> the project</td>
+            <td>Makes assigned files writable (<code>chmod 644</code>) and everything else read-only (<code>chmod 444</code>). Uses <code>--user</code> flag, <code>PLANSYNC_USER</code> env var, or auto-detects from GitHub. Use <code>--reset</code> to restore all files to writable.</td>
+          </tr>
+          <tr>
+            <td><code>plansync plan &lt;desc&gt;</code></td>
+            <td><strong>Optional</strong> — if you want an LLM to help draft the plan</td>
+            <td>Sends your project description to an LLM (requires <code>ANTHROPIC_API_KEY</code>). Generates tasks with scope, dependencies, and acceptance criteria. Supports approve, edit with feedback, regenerate, or cancel. Saves to <code>.plansync/plan.json</code>.</td>
+          </tr>
+          <tr>
+            <td><code>plansync clean</code></td>
+            <td><strong>Undo</strong> — remove all PlanSync traces</td>
+            <td>Deletes <code>.plansync/</code>, workflow files, post-merge hook, <code>PROJECT_PLAN.md</code>, and removes <code>&lt;!-- plansync --&gt;</code> blocks from context files. Removes <code>.plansync/config.json</code> from <code>.gitignore</code>.</td>
+          </tr>
+        </table>
+
+        <h2 id="end-to-end">End-to-end example</h2>
+
+        <div class="code-block">
+          <pre><code><span class="prompt">$</span> npm install -g plansync
+
+<span class="prompt">$</span> mkdir my-app && cd my-app
+<span class="prompt">$</span> git init && git add -A && git commit -m "first"
+<span class="prompt">$</span> gh repo create my-app --push --public
+<span class="prompt">$</span> plansync init
+<span class="comment">  # Press Enter → browser opens → authorize → done</span>
+
+<span class="comment">  # Your agent reads AGENTS.md and writes .plansync/plan.json:</span>
+<span class="comment">  #    T001 - "Set up auth"  → scope: src/auth/**, backend/auth/**</span>
+<span class="comment">  #    T002 - "Build landing" → scope: src/pages/**</span>
+
+<span class="prompt">$</span> plansync delegate
+<span class="comment">  # Auto-distributes tasks to collaborators</span>
+<span class="comment">  # Approve → issues created → manifests + context files committed → pushed</span>
+
+<span class="prompt">$</span> plansync status
+<span class="comment">  # T001   ◻ ready   howards254  src/auth/**, backend/auth/**</span>
+<span class="comment">  # T002   ◻ ready   janedoe     src/pages/**</span>
+
+<span class="prompt">$</span> plansync sync --user janedoe
+<span class="comment">  # Only src/pages/** is writable for janedoe</span></code></pre>
+        </div>
+
+      </div>
+
+      <aside class="doc-sidebar">
+        <h4>On this page</h4>
+        <ul>
+          <li><a href="#commands">All commands</a></li>
+          <li><a href="#end-to-end">End-to-end example</a></li>
+        </ul>
+      </aside>
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <p>MIT licensed &middot; Built for AI-assisted development teams</p>
+      <div class="footer-links">
+        <a href="https://github.com/howards254/plansync">GitHub</a>
+        <a href="docs.html">Documentation</a>
+        <a href="faq.html">FAQ</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+    const hamburger = document.getElementById('hamburger');
+    const overlay = document.getElementById('nav-overlay');
+    hamburger.addEventListener('click', () => overlay.classList.toggle('open'));
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
+  </script>
+</body>
+</html>

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2 — 2026-06-27
+
+- **Website redesign** — new workflow.html guide (new project vs existing project), streamlined install and docs pages
+- **Auto-version badge** — homepage fetches latest version from npm registry automatically
+- **Active nav links** — current page highlighted in site navigation
+
 ## 0.2.1 — 2026-06-27
 
 - **Interactive browser dialog** — countdown 5s then auto-opens browser; user can open, copy URL, or cancel

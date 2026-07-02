@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Install — PlanSync</title>
-  <meta name="description" content="Install PlanSync globally with npm. Prerequisites, environment setup, and common troubleshooting.">
+  <meta name="description" content="Install PlanSync in one command. No API keys, no environment variables, no OAuth App setup.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -38,7 +38,8 @@
       </a>
       <div class="nav-links">
         <a href="/">Home</a>
-        <a href="install.html">Install</a>
+        <a href="install.html" class="active">Install</a>
+        <a href="workflow.html">How it works</a>
         <a href="docs.html">Docs</a>
         <a href="faq.html">FAQ</a>
       </div>
@@ -60,6 +61,7 @@
     <div class="overlay-content">
       <a href="/">Home</a>
       <a href="install.html">Install</a>
+      <a href="workflow.html">How it works</a>
       <a href="docs.html">Docs</a>
       <a href="faq.html">FAQ</a>
       <a href="https://github.com/howards254/plansync" style="margin-top:auto; border-bottom:none; color:var(--primary);">GitHub</a>
@@ -73,40 +75,48 @@
 
     <div class="page-body">
       <div class="doc-content">
+
+        <p style="font-size:1.1em;">Two commands and you're set:</p>
+
         <div class="code-block">
-          <pre><code><span class="prompt">$</span> npm install -g plansync</code></pre>
+          <pre><code><span class="prompt">$</span> npm install -g plansync
+<span class="prompt">$</span> cd your-project
+<span class="prompt">$</span> plansync init
+<span class="comment"># Press Enter → browser opens → authorize → done</span></code></pre>
         </div>
 
         <h2 id="prerequisites">Prerequisites</h2>
         <ul>
-          <li><strong>Node.js 18+</strong> — PlanSync runs on any LTS version of Node.js</li>
-          <li><strong>A GitHub account</strong> — with a repository you want to manage</li>
+          <li><strong>Node.js 18+</strong> — any LTS version</li>
+          <li><strong>A GitHub repo</strong> — with a remote named <code>origin</code></li>
         </ul>
+        <p>No API keys. No OAuth App registration. No environment variables. A built-in GitHub OAuth Client ID is included — device flow works out of the box.</p>
 
-        <h2 id="auth">Authenticate</h2>
-        <p>Run <code>plansync init</code> and press <strong>Enter</strong> to authenticate in your browser:</p>
-        <div class="code-block">
-          <pre><code><span class="prompt">$</span> cd my-project
-<span class="prompt">$</span> plansync init
-<span class="prompt">></span> Press Enter to authenticate in your browser...</code></pre>
-        </div>
-        <p>PlanSync will show you a URL and a code. Visit the URL, enter the code, and click <strong>Authorize</strong>. No account setup, no environment variables — a built-in Client ID is included.</p>
-        <p>Don't want to use the browser? Paste a <a href="https://github.com/settings/tokens/new">Personal Access Token</a> with <code>repo</code>, <code>issues</code>, and <code>project</code> scopes instead.</p>
+        <h2 id="auth">How authentication works</h2>
+        <p>When you run <code>plansync init</code>:</p>
+        <ol>
+          <li>Press <strong>Enter</strong> → PlanSync starts a 5-second countdown then opens your browser</li>
+          <li>Visit <code>github.com/login/device</code>, enter the code shown in terminal, click <strong>Authorize</strong></li>
+          <li>PlanSync gets a token, saves it to <code>.plansync/config.json</code>, and adds it to <code>.gitignore</code></li>
+        </ol>
+        <p>Prefer a token? Paste a <a href="https://github.com/settings/tokens/new">Personal Access Token</a> with <code>repo</code> and <code>project</code> scopes at the prompt instead.</p>
 
         <h2 id="errors">Common errors</h2>
         <table>
           <tr><th>Error</th><th>Fix</th></tr>
-          <tr><td><code>No git remote "origin"</code></td><td>Push your repo to GitHub first</td></tr>
-          <tr><td><code>Invalid token</code></td><td>Generate a new token at <a href="https://github.com/settings/tokens/new">github.com/settings/tokens/new</a> with repo + issues + project scopes</td></tr>
-          <tr><td><code>Permission denied</code></td><td>Use <code>sudo npm install -g</code> or fix your npm permissions</td></tr>
+          <tr><td><code>No git remote "origin"</code></td><td>Push your repo to GitHub first: <code>git push -u origin main</code></td></tr>
+          <tr><td><code>Invalid token</code></td><td>Generate a new <a href="https://github.com/settings/tokens/new">PAT</a> with <code>repo</code> + <code>project</code> scopes</td></tr>
+          <tr><td><code>Permission denied</code></td><td>Run <code>sudo npm install -g plansync</code> or fix npm permissions</td></tr>
+          <tr><td>Push rejected — secret detected</td><td>Run <code>git rm --cached .plansync/config.json && git commit --amend && git push -f</code> to remove previously committed config</td></tr>
         </table>
+
       </div>
 
       <aside class="doc-sidebar">
         <h4>On this page</h4>
         <ul>
           <li><a href="#prerequisites">Prerequisites</a></li>
-          <li><a href="#auth">Authenticate</a></li>
+          <li><a href="#auth">Authentication</a></li>
           <li><a href="#errors">Common errors</a></li>
         </ul>
       </aside>

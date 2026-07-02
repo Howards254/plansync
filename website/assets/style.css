@@ -97,6 +97,8 @@ header.dark-nav .nav-links a:hover { color: var(--primary-light); }
   padding: 4px 0;
 }
 .nav-links a:hover { color: var(--text); }
+.nav-links a.active { color: var(--primary); font-weight: 600; }
+.nav-links a.active::after { width: 100%; }
 .nav-links a::after {
   content: '';
   position: absolute;

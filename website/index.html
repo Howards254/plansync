@@ -39,6 +39,7 @@
       <div class="nav-links">
         <a href="/">Home</a>
         <a href="install.html">Install</a>
+        <a href="workflow.html">How it works</a>
         <a href="docs.html">Docs</a>
         <a href="faq.html">FAQ</a>
       </div>
@@ -60,6 +61,7 @@
     <div class="overlay-content">
       <a href="/">Home</a>
       <a href="install.html">Install</a>
+      <a href="workflow.html">How it works</a>
       <a href="docs.html">Docs</a>
       <a href="faq.html">FAQ</a>
       <a href="https://github.com/howards254/plansync" style="margin-top:auto; border-bottom:none; color:var(--primary);">GitHub</a>
@@ -69,7 +71,7 @@
   <main>
     <section class="hero">
       <div class="hero-content fade-up visible">
-        <span class="eyebrow">v0.2.1 — Now on npm</span>
+        <span class="eyebrow" id="version-badge">Loading latest version...</span>
         <h1>Structure for AI-assisted development</h1>
         <p class="subtitle">PlanSync lets you split a repository into scoped sections, assign each to a developer or AI agent, and enforce boundaries at the filesystem level.</p>
         <div class="hero-actions">
@@ -198,6 +200,12 @@
     if (window.location.pathname === '/' || window.location.pathname === '') {
       document.getElementById('nav-header').classList.add('dark-nav');
     }
+
+    // Auto-version from npm registry
+    fetch('https://registry.npmjs.org/plansync/latest')
+      .then(r => r.json())
+      .then(d => { document.getElementById('version-badge').textContent = 'v' + d.version + ' — Now on npm'; })
+      .catch(() => { document.getElementById('version-badge').textContent = 'Now on npm'; });
   </script>
 </body>
 </html>
