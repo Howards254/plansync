@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.1 — 2026-07-03
+
+- **Website updates** — all pages reflect per-user context files (generated at sync time, not delegate time)
+- **workflow.html** — updated delegate/sync descriptions, end-to-end example with numbered menu
+- **install.html** — next steps now mention context file generation
+- **index.html** — delegate step no longer mentions context files; sync step does
+- **faq.html** — context files description updated
+
 ## 0.3.0 — 2026-07-03
 
 - **Per-user context files** — context files are now generated at `plansync sync` time, not delegate time. Written to `.plansync/context/<username>/`, gitignored, containing only that user's assigned tasks. All 7 agent templates updated.

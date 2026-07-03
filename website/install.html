@@ -111,7 +111,7 @@
               <li><strong>Create your repo</strong> on GitHub and <code>git push</code> to it</li>
               <li><strong>Tell your agent</strong> to read <code>AGENTS.md</code> and write a plan to <code>.plansync/plan.json</code></li>
               <li>Run <strong><code>plansync delegate</code></strong> — pushes Issues, board, scope files to GitHub, commits, and pushes</li>
-              <li>Each collaborator runs <strong><code>plansync sync</code></strong> to lock their scope</li>
+              <li>Each collaborator runs <strong><code>plansync sync</code></strong> to lock scope + get per-user context files</li>
             </ol>
           </div>
           <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px;">
@@ -119,7 +119,7 @@
             <ol style="padding-left:20px; display:flex; flex-direction:column; gap:12px;">
               <li><strong>Describe the next milestone</strong> to your agent — it will write a plan to <code>.plansync/plan.json</code></li>
               <li>Run <strong><code>plansync delegate</code></strong> — same as new project: Issues, board, scope files</li>
-              <li>Each collaborator runs <strong><code>plansync sync</code></strong> to lock their scope</li>
+              <li>Each collaborator runs <strong><code>plansync sync</code></strong> to lock scope + get per-user context files</li>
               <li>Change your mind? Run <strong><code>plansync clean</code></strong> to undo everything</li>
             </ol>
           </div>

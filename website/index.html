@@ -110,7 +110,7 @@
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             </div>
             <h3>Delegate</h3>
-            <p>Assign tasks to collaborators. PlanSync creates GitHub Issues, a Project board, and per-agent context files that tell each tool exactly what it can touch.</p>
+            <p>Assign tasks to collaborators. PlanSync creates GitHub Issues, a Project board, and scope manifests. Each collaborator then runs <code>plansync sync</code> to lock their scope and generate per-agent context files.</p>
           </div>
           <div class="feature">
             <div class="feature-icon">
@@ -145,7 +145,7 @@
           </li>
           <li>
             <strong>GitHub is the source of truth</strong>
-            <span>Plans, manifests, and context files are plain files committed to your repo.</span>
+            <span>Plans and scope manifests are plain files committed to your repo. Per-user context files are generated locally at sync time (<code>.plansync/context/</code>).</span>
           </li>
           <li>
             <strong>CI is the backstop</strong>

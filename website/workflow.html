@@ -86,8 +86,8 @@
               <li><strong>npm install -g plansync</strong> — install globally</li>
               <li><strong>plansync init</strong> — authenticate, scaffold workflows, write <code>AGENTS.md</code></li>
               <li><strong>Agent plans the work</strong> — your coding agent reads <code>AGENTS.md</code> and writes <code>.plansync/plan.json</code></li>
-              <li><strong>plansync delegate</strong> — Issues, Project board, context files, scope manifests, commit</li>
-              <li><strong>plansync sync</strong> — each collaborator locks to their task scope</li>
+              <li><strong>plansync delegate</strong> — Issues, Project board, scope manifests, commit</li>
+              <li><strong>plansync sync</strong> — locks scope permissions + generates per-user context files</li>
             </ol>
           </div>
           <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px;">
@@ -98,6 +98,7 @@
               <li><strong>plansync init</strong> — re-authenticate, adds <code>.plansync/config.json</code> to <code>.gitignore</code></li>
               <li><strong>Agent plans the refactor</strong> — describe the next milestone to your agent</li>
               <li><strong>plansync delegate</strong> — same as new project</li>
+              <li><strong>plansync sync</strong> — locks scope + generates per-user context files at <code>.plansync/context/&lt;name&gt;/</code></li>
               <li><strong>plansync clean</strong> — undo everything if you change your mind</li>
             </ol>
           </div>
@@ -115,7 +116,7 @@
           <tr>
             <td><code>plansync delegate</code></td>
             <td><strong>Your plan is ready</strong> — agent has written <code>.plansync/plan.json</code></td>
-            <td>Shows the plan, asks for task assignments (auto-distribute to collaborators or per-task), then creates GitHub Issues, a Project v2 board, scope manifests (<code>.plansync/scopes/*.json</code>), context files per agent tool, and <code>PROJECT_PLAN.md</code>. Commits everything and pushes.</td>
+            <td>Shows the plan, asks for task assignments (numbered menu: <code>"1=b"</code> or <code>"all=a"</code>), then creates GitHub Issues, a Project v2 board, scope manifests (<code>.plansync/scopes/*.json</code>), and <code>PROJECT_PLAN.md</code>. Commits everything and pushes. Use <code>--auto</code> to skip reassignment and use round-robin defaults.</td>
           </tr>
           <tr>
             <td><code>plansync status</code></td>
@@ -125,7 +126,7 @@
           <tr>
             <td><code>plansync sync [--user &lt;name&gt;]</code></td>
             <td><strong>Collaborator joining</strong> the project</td>
-            <td>Makes assigned files writable (<code>chmod 644</code>) and everything else read-only (<code>chmod 444</code>). Uses <code>--user</code> flag, <code>PLANSYNC_USER</code> env var, or auto-detects from GitHub. Use <code>--reset</code> to restore all files to writable.</td>
+            <td>Makes assigned files writable (<code>chmod 644</code>) and everything else read-only (<code>chmod 444</code>). Also generates per-user context files at <code>.plansync/context/&lt;name&gt;/</code> containing only your assigned tasks. Uses <code>--user</code> flag, <code>PLANSYNC_USER</code> env var, or auto-detects from GitHub. Use <code>--reset</code> to restore all files to writable.</td>
           </tr>
           <tr>
             <td><code>plansync plan &lt;desc&gt;</code></td>
@@ -155,15 +156,17 @@
 <span class="comment">  #    T002 - "Build landing" → scope: src/pages/**</span>
 
 <span class="prompt">$</span> plansync delegate
-<span class="comment">  # Auto-distributes tasks to collaborators</span>
-<span class="comment">  # Approve → issues created → manifests + context files committed → pushed</span>
+<span class="comment">  # Tasks: 1. T001  2. T002          Collaborators: a. howards254  b. janedoe</span>
+<span class="comment">  # Reassign (e.g. "1=b" or "all=a"), or Enter to approve</span>
+<span class="comment">  # Approve → issues created → manifests committed → pushed</span>
 
 <span class="prompt">$</span> plansync status
 <span class="comment">  # T001   ◻ ready   howards254  src/auth/**, backend/auth/**</span>
 <span class="comment">  # T002   ◻ ready   janedoe     src/pages/**</span>
 
 <span class="prompt">$</span> plansync sync --user janedoe
-<span class="comment">  # Only src/pages/** is writable for janedoe</span></code></pre>
+<span class="comment">  # Only src/pages/** is writable for janedoe</span>
+<span class="comment">  # Context files generated at .plansync/context/janedoe/</span></code></pre>
         </div>
 
       </div>
