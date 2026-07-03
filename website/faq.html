@@ -93,6 +93,9 @@
         <h2 id="no-sync">What if a collaborator doesn't run <code>plansync sync</code>?</h2>
         <p>They'll have write access to everything until they run it. The post-merge git hook (installed by <code>plansync init</code>) runs <code>plansync sync</code> automatically after every pull — updating both scope permissions and context files. CI will still flag any scope violations in their PRs.</p>
 
+        <h2 id="windows">Does it work on Windows?</h2>
+        <p>Yes. PlanSync supports macOS, Linux, and Windows. Windows users should install <a href="https://git-scm.com/download/win">Git for Windows</a> (which includes Git Bash) and run PlanSync commands from Git Bash rather than cmd.exe or PowerShell. Browser opening, clipboard copy, and all CLI commands work on Windows. File permission enforcement is weaker on Windows (sets the read-only attribute rather than full Unix ACLs), so rely on the CI scope-check Action as the real backstop.</p>
+
         <h2 id="update-plan">How do I update the plan after delegation?</h2>
         <p>Edit <code>.plansync/plan.json</code> (or regenerate with <code>plansync plan</code>), then run <code>plansync delegate</code> again. It will create new Issues for new tasks and skip existing ones.</p>
       </div>
@@ -106,6 +109,7 @@
           <li><a href="#manual-plan">Manual plan</a></li>
           <li><a href="#code-privacy">Code privacy</a></li>
           <li><a href="#no-sync">No sync?</a></li>
+          <li><a href="#windows">Windows support</a></li>
           <li><a href="#update-plan">Update plan</a></li>
         </ul>
       </aside>

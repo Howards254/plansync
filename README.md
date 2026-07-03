@@ -28,7 +28,25 @@ npm install -g plansync
 
 **Prerequisites:** Node.js 18+, a GitHub repo with a remote named `origin`.
 
+**Platform support:** macOS, Linux, and Windows (with Git Bash recommended for full functionality).
+
 No API keys required. A built-in GitHub OAuth Client ID is included — device flow works out of the box.
+
+---
+
+## Platform support
+
+| Platform | Support level | Notes |
+|----------|---------------|-------|
+| **macOS** | ✅ Full | All features work out of the box |
+| **Linux** | ✅ Full | All features work out of the box |
+| **Windows** | ✅ Full | Use Git Bash for best experience. Post-merge hook requires Git Bash. |
+
+**Windows users:**
+- Install [Git for Windows](https://git-scm.com/download/win) which includes Git Bash
+- Run PlanSync commands from Git Bash (not cmd.exe or PowerShell) for full functionality
+- File permissions enforcement is weaker on Windows — rely on CI scope-check as the backstop
+- Browser opening and clipboard copy now work natively on Windows
 
 ---
 
@@ -165,6 +183,8 @@ The root `AGENTS.md` (written by `plansync init`) always contains the project pl
 **How does my agent know which task is mine?** After `plansync sync`, your agent's context file is at `.plansync/context/<username>/AGENTS.md`. Tell your agent to read that file. It contains only the tasks assigned to you.
 
 **Does this work with any coding agent?** Yes — 28+ agents read `AGENTS.md` natively. PlanSync also generates tool-specific files for Claude Code, Cursor, Copilot, Windsurf, Gemini CLI, and Continue.dev.
+
+**Does it work on Windows?** Yes — macOS, Linux, and Windows are all supported. Windows users should install [Git for Windows](https://git-scm.com/download/win) and use Git Bash for full functionality. File permission enforcement is weaker on Windows; rely on the CI scope-check as the backstop.
 
 ---
 

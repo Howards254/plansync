@@ -89,8 +89,18 @@
         <ul>
           <li><strong>Node.js 18+</strong> — any LTS version</li>
           <li><strong>A GitHub repo</strong> — with a remote named <code>origin</code></li>
+          <li><strong>Windows users:</strong> <a href="https://git-scm.com/download/win">Git for Windows</a> (includes Git Bash)</li>
         </ul>
         <p>No API keys. No OAuth App registration. No environment variables. A built-in GitHub OAuth Client ID is included — device flow works out of the box.</p>
+
+        <h2 id="platforms">Platform support</h2>
+        <table>
+          <tr><th>Platform</th><th>Status</th><th>Notes</th></tr>
+          <tr><td>macOS</td><td>✅ Full</td><td>All features work out of the box</td></tr>
+          <tr><td>Linux</td><td>✅ Full</td><td>All features work out of the box</td></tr>
+          <tr><td>Windows</td><td>✅ Full</td><td>Use Git Bash for best experience. File permissions are weaker — CI scope-check is the backstop.</td></tr>
+        </table>
+        <p>Windows users should run PlanSync commands from Git Bash (included with Git for Windows) rather than cmd.exe or PowerShell for full functionality including the post-merge hook.</p>
 
         <h2 id="auth">How authentication works</h2>
         <p>When you run <code>plansync init</code>:</p>
@@ -142,6 +152,7 @@
         <h4>On this page</h4>
         <ul>
           <li><a href="#prerequisites">Prerequisites</a></li>
+          <li><a href="#platforms">Platform support</a></li>
           <li><a href="#auth">Authentication</a></li>
           <li><a href="#next-steps">Next steps</a></li>
           <li><a href="#errors">Common errors</a></li>
