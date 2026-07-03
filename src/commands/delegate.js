@@ -395,7 +395,11 @@ function commitAndPush(root, message, usePr) {
 
   try {
     execSync('git add -A', { cwd: root, stdio: 'pipe' });
-    execSync('git rm --cached --ignore-unmatch .plansync/config.json 2>/dev/null || true', { cwd: root, stdio: 'pipe' });
+    try {
+      execSync('git rm --cached --ignore-unmatch .plansync/config.json', { cwd: root, stdio: 'pipe' });
+    } catch {
+      // Not tracked — nothing to untrack
+    }
     execSync(`git commit -m "${message.replace(/"/g, '\\"')}"`, { cwd: root, stdio: 'pipe' });
     console.log('  Committed.');
 

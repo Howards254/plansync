@@ -37,15 +37,23 @@ function sleep(ms) {
 }
 
 function openBrowser(url) {
-  const cmd = process.platform === 'darwin' ? 'open' : 'xdg-open';
-  execSync(`${cmd} '${url}'`, { stdio: 'pipe' });
+  if (process.platform === 'darwin') {
+    execSync(`open '${url}'`, { stdio: 'pipe' });
+  } else if (process.platform === 'win32') {
+    execSync(`start "" "${url}"`, { stdio: 'pipe' });
+  } else {
+    execSync(`xdg-open '${url}'`, { stdio: 'pipe' });
+  }
 }
 
 function copyToClipboard(text) {
-  const cmd = process.platform === 'darwin'
-    ? 'pbcopy'
-    : 'xclip -selection clipboard';
-  execSync(`echo -n '${text}' | ${cmd}`, { stdio: 'pipe' });
+  if (process.platform === 'darwin') {
+    execSync(`echo -n '${text}' | pbcopy`, { stdio: 'pipe' });
+  } else if (process.platform === 'win32') {
+    execSync(`echo ${text} | clip`, { stdio: 'pipe' });
+  } else {
+    execSync(`echo -n '${text}' | xclip -selection clipboard`, { stdio: 'pipe' });
+  }
 }
 
 async function authenticateWithDialog(clientId) {

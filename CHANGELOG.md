@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.2 — 2026-07-03
+
+- **Windows compatibility** — browser opening now supports `start` (Windows) alongside `open` (macOS) and `xdg-open` (Linux)
+- **Windows clipboard** — `clip` command added for Windows alongside `pbcopy` (macOS) and `xclip` (Linux)
+- **Cross-platform shell syntax** — removed Unix-specific `2>/dev/null || true` from delegate.js, replaced with try/catch
+
 ## 0.3.1 — 2026-07-03
 
 - **Website updates** — all pages reflect per-user context files (generated at sync time, not delegate time)
