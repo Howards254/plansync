@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 — 2026-07-03
+
+- **Per-user context files** — context files are now generated at `plansync sync` time, not delegate time. Written to `.plansync/context/<username>/`, gitignored, containing only that user's assigned tasks. All 7 agent templates updated.
+- **Numbered reassignment menu** — delegate now shows a numbered task + lettered collaborator menu. Input formats: `"1=b"`, `"1,3=b"`, `"all=a"`. No more typing task IDs and usernames.
+- **Fallback for invalid assignees** — if a user isn't a collaborator, the issue is created without assignee and a comment is added with the intended username.
+- **Plan.json updated with assignments** — delegate now writes `assignedTo` back to `.plansync/plan.json` so `sync` can read them.
+- **--auto flag** — `plansync delegate --auto` skips interactive reassignment but still shows the approval prompt.
+- **Context files gitignored** — `.plansync/context/` is now added to `.gitignore` during init.
+
 ## 0.2.5 — 2026-06-27
 
 - **README** — added prominent website link at top

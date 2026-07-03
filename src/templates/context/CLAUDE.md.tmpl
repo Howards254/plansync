@@ -1,20 +1,14 @@
 # Project: {{projectTitle}}
 
-## Your Assignment: {{taskId}} — {{taskTitle}}
+## Your Assignment{{#if multiTask}}s{{/if}} — {{username}}
 
-### Description
-{{taskDescription}}
+You have {{userTaskCount}} task(s) assigned to you.
 
-### Scope (files you may edit)
-{{scopeList}}
+{{taskList}}
 
-You may ONLY edit files matching the glob patterns above. You may READ any file in the project for context, but writes outside your scope will fail with an OS permission error (EACCES).
+## File Permissions
+You may ONLY edit files matching the glob patterns in your assigned tasks above.
+You may READ any file in the project for context, but writes outside your scope will fail with an OS permission error (EACCES).
 
-### Acceptance Criteria
-{{acceptanceList}}
-
-### Dependencies (read these tasks' files for context, but do not edit them)
-{{dependencyList}}
-
-### Project Summary
+## Project Summary
 {{projectDescription}}

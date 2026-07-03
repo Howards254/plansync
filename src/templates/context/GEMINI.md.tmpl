@@ -1,19 +1,12 @@
-# Gemini Instructions — {{taskId}}: {{taskTitle}}
+# {{projectTitle}} — Tasks for {{username}}
 
-## Project
-{{projectTitle}}: {{projectDescription}}
+You have {{userTaskCount}} task(s) assigned to you:
 
-## Your Task
-{{taskDescription}}
+{{taskList}}
 
-## File Scope
-You may write to files matching:
-{{scopeList}}
+## Scope Rules
+You may modify files matching the glob patterns above.
+All other files are read-only — enforced by filesystem permissions.
 
-Files outside this scope are read-only. This project uses filesystem-level permissions to enforce scope boundaries.
-
-## Acceptance Criteria
-{{acceptanceList}}
-
-## Dependencies
-{{dependencyList}}
+## Project Description
+{{projectDescription}}

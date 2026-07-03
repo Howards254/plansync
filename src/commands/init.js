@@ -89,23 +89,23 @@ async function init() {
   config.write(root, cfg);
   console.log('Saved credentials to .plansync/config.json');
 
-  // --- Ensure .plansync/config.json is gitignored and untracked ---
+  // --- Ensure .plansync/config.json and .plansync/context/ are gitignored ---
   const gitignorePath = path.join(root, '.gitignore');
-  const gitignoreEntry = '.plansync/config.json';
+  const gitignoreEntries = ['.plansync/config.json', '.plansync/context/'];
   let gitignore = '';
   if (fs.existsSync(gitignorePath)) {
     gitignore = fs.readFileSync(gitignorePath, 'utf-8');
   }
-  if (!gitignore.split('\n').map(l => l.trim()).includes(gitignoreEntry)) {
-    fs.appendFileSync(gitignorePath, '\n' + gitignoreEntry + '\n');
-    console.log(`Added ${gitignoreEntry} to .gitignore`);
-  }
-  // Untrack if it was previously committed
-  try {
-    execSync(`git rm --cached ${gitignoreEntry}`, { cwd: root, stdio: 'pipe' });
-    console.log(`Untracked ${gitignoreEntry}`);
-  } catch {
-    // Not tracked — nothing to untrack
+  for (const entry of gitignoreEntries) {
+    if (!gitignore.split('\n').map(l => l.trim()).includes(entry)) {
+      fs.appendFileSync(gitignorePath, '\n' + entry + '\n');
+      console.log(`Added ${entry} to .gitignore`);
+    }
+    try {
+      execSync(`git rm --cached ${entry}`, { cwd: root, stdio: 'pipe' });
+    } catch {
+      // Not tracked — nothing to untrack
+    }
   }
 
   // --- Scaffold workflows ---

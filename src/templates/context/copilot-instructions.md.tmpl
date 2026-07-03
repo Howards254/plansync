@@ -1,17 +1,9 @@
-# Copilot Instructions — {{taskId}}: {{taskTitle}}
+# {{projectTitle}} — Instructions for {{username}}
+
+## Your Tasks ({{userTaskCount}})
+
+{{taskList}}
 
 ## Scope
-Only suggest edits for files matching these patterns:
-{{scopeList}}
-
-Do not suggest changes to files outside this scope. Treat out-of-scope files as read-only context.
-
-## Task
-{{taskDescription}}
-
-## Acceptance Criteria
-{{acceptanceList}}
-
-## Context
-- Project: {{projectTitle}}
-- Depends on: {{dependencyList}}
+You may only write to files matching the glob patterns listed above.
+All other files in the project are read-only.

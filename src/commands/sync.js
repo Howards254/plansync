@@ -3,6 +3,7 @@ const fs = require('fs');
 const config = require('../lib/config');
 const { applyScope, clearScope, getCurrentUsername } = require('../lib/permissions');
 const { validate } = require('../lib/planSchema');
+const { generateForUser } = require('../lib/contextFiles');
 
 function listValidAssignees(plan) {
   const assignees = new Set(
@@ -75,7 +76,7 @@ async function sync() {
     process.exit(1);
   }
 
-  // Validate username against the plan
+  // Validate username against the plan (now assignments are written to plan.json by delegate)
   const validAssignees = listValidAssignees(plan);
   if (validAssignees.length > 0 && !validAssignees.includes(username)) {
     console.error('\n"%s" does not match any assigned task in the plan.', username);
@@ -89,25 +90,37 @@ async function sync() {
     process.exit(1);
   }
 
+  // Apply scope permissions
   console.log('\nApplying scope permissions for %s...', username);
   try {
     const result = applyScope(root, username, plan);
-    console.log('\nSummary:');
+    console.log('\nPermission Summary:');
     console.log('  Total files examined: %d', result.total);
     console.log('  Writable (in scope):  %d', result.writable);
     console.log('  Read-only (out of scope): %d', result.readonly);
-    if (result.assignedGlobs.length > 0) {
-      console.log('  Your scope globs:');
-      for (const glob of result.assignedGlobs) {
-        console.log('    - %s', glob);
-      }
-    } else {
-      console.log('  No assigned tasks \u2014 all project files are read-only for you.');
-    }
     console.log('\nPermissions synced.');
   } catch (err) {
     console.error('Failed to apply permissions: %s', err.message);
     process.exit(1);
+  }
+
+  // Generate per-user context files
+  console.log('\nGenerating context files for %s...', username);
+  try {
+    const contextFiles = generateForUser(root, plan, username);
+    const userTaskCount = plan.tasks.filter(t => t.assignedTo === username).length;
+
+    if (Object.keys(contextFiles).length > 0) {
+      console.log('  Wrote %d context file(s) to .plansync/context/%s/', Object.keys(contextFiles).length, username);
+      for (const [filename] of Object.entries(contextFiles)) {
+        console.log('    .plansync/context/%s/%s', username, filename);
+      }
+      console.log('\nTo use: tell your agent to read .plansync/context/%s/ for task-specific instructions.', username);
+    } else {
+      console.log('  No tasks assigned to %s — context files skipped.', username);
+    }
+  } catch (err) {
+    console.error('  Failed to generate context files: %s', err.message);
   }
 }
 

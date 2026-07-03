@@ -91,32 +91,28 @@
         </div>
         <p>To use a PAT instead of the browser flow, paste the token at the prompt. The token needs <code>repo</code> and <code>project</code> scopes. Generate one at <a href="https://github.com/settings/tokens/new">github.com/settings/tokens/new</a>.</p>
 
-        <h3 id="cmd-delegate"><code>plansync delegate</code></h3>
-        <p>Reads <code>.plansync/plan.json</code> (written by your agent) and pushes it to GitHub as Issues, a Project v2 board, scope manifests, and per-agent context files. Auto-distributes tasks round-robin to repo collaborators. Shows an assignment review table so you can reassign before approving.</p>
+        <h3 id="cmd-delegate"><code>plansync delegate [--auto]</code></h3>
+        <p>Reads <code>.plansync/plan.json</code> (written by your agent) and pushes it to GitHub as Issues, a Project v2 board, and scope manifests. Auto-distributes tasks round-robin to repo collaborators. Shows a numbered reassignment menu so you can move tasks between collaborators quickly before approving.</p>
         <div class="code-block">
           <pre><code><span class="prompt">$</span> plansync delegate
 
-<span class="comment">  Tasks to assign:</span>
-<span class="comment">  T001  Set up auth              scope: src/auth/**</span>
-<span class="comment">  T002  Build landing page       scope: src/pages/**</span>
-<span class="comment">  T003  Write API routes         scope: src/api/**, backend/**</span>
+<span class="comment">  Tasks:                              Collaborators:</span>
+<span class="comment">   1. T001  Set up auth                a. howards254 (you)</span>
+<span class="comment">   2. T002  Build landing page         b. janedoe</span>
+<span class="comment">   3. T003  Write API routes           c. alice</span>
 
-<span class="comment">  Proposed assignments:</span>
-<span class="comment">  ┌────────┬─────────────┬──────────┐</span>
-<span class="comment">  │ Task   │ Assignee    │ Scope    │</span>
-<span class="comment">  ├────────┼─────────────┼──────────┤</span>
-<span class="comment">  │ T001   │ howards254  │ src/auth │</span>
-<span class="comment">  │ T002   │ janedoe     │ src/pages│</span>
-<span class="comment">  │ T003   │ howards254  │ src/api  │</span>
-<span class="comment">  └────────┴─────────────┴──────────┘</span>
+<span class="comment">  Current assignments:</span>
+<span class="comment">   1 → a (howards254)</span>
+<span class="comment">   2 → b (janedoe)</span>
+<span class="comment">   3 → a (howards254)</span>
 
-<span class="comment">  Reassign? (task name or Enter to approve):</span>
+<span class="comment">  Reassign (e.g. "1=b" or "1,3=b" or "all=a"), or Enter to approve:</span>
 <span class="comment">  ✓ Creating Issues...</span>
 <span class="comment">  ✓ Creating Project board...</span>
 <span class="comment">  ✓ Writing scope manifests...</span>
-<span class="comment">  ✓ Writing context files...</span>
 <span class="comment">  ✓ Committing and pushing...</span></code></pre>
         </div>
+        <p>Use <code>--auto</code> to skip the reassignment menu entirely and use round-robin defaults (the approval prompt is still shown). If a username is not a repo collaborator, the issue is created unassigned with a comment noting the intended assignee.</p>
 
         <h3 id="cmd-status"><code>plansync status</code></h3>
         <p>Prints the plan alongside live GitHub Issue states. Shows each task's status (ready / in progress / done / blocked), assigned user, scope globs, Issue number, and blocking dependency chains. Ends with a summary count.</p>
@@ -131,7 +127,7 @@
         </div>
 
         <h3 id="cmd-sync"><code>plansync sync [--user &lt;name&gt;]</code></h3>
-        <p>Locks filesystem permissions to a collaborator's assigned scope. Files matching the user's task scopes become writable (<code>chmod 644</code>); everything else becomes read-only (<code>chmod 444</code>). Prevents accidental edits outside your scope. Username is resolved via <code>--user</code> flag, <code>PLANSYNC_USER</code> env var, or auto-detected from the GitHub token. Use <code>--reset</code> to restore all files to writable.</p>
+        <p>Locks filesystem permissions to a collaborator's assigned scope. Files matching the user's task scopes become writable (<code>chmod 644</code>); everything else becomes read-only (<code>chmod 444</code>). Prevents accidental edits outside your scope. Also generates per-user context files at <code>.plansync/context/&lt;username&gt;/</code> containing only the current user's assigned tasks. Username is resolved via <code>--user</code> flag, <code>PLANSYNC_USER</code> env var, or auto-detected from the GitHub token. Use <code>--reset</code> to restore all files to writable.</p>
         <div class="code-block">
           <pre><code><span class="prompt">$</span> plansync sync --user janedoe
 
@@ -141,7 +137,10 @@
 <span class="comment">  ✓ Set read-only: src/auth/login.js</span>
 <span class="comment">  ✓ Set read-only: src/api/routes.js</span>
 <span class="comment">  ✓ Set read-only: backend/server.js</span>
-<span class="comment">  Scope applied for janedoe (2 writable, 3 read-only, 0 skipped)</span>
+<span class="comment">  Permission Summary: (2 writable, 3 readonly)</span>
+
+<span class="comment">  Generating context files for janedoe...</span>
+<span class="comment">  Wrote 7 context file(s) to .plansync/context/janedoe/</span>
 
 <span class="prompt">$</span> plansync sync --reset
 <span class="comment">  ✓ All files restored to writable</span></code></pre>
@@ -195,8 +194,8 @@
         <p>PlanSync uses four layers:</p>
         <ol>
           <li><strong>Plan generation</strong> — After <code>plansync init</code>, your coding agent reads <code>AGENTS.md</code> and writes <code>.plansync/plan.json</code> with tasks, scope, and dependencies. You review, revise, approve.</li>
-          <li><strong>GitHub synchronization</strong> — The <code>delegate</code> command writes the plan to GitHub Issues, a Project board, scope manifests, and per-agent context files.</li>
-          <li><strong>Scope enforcement</strong> — The <code>sync</code> command walks the repo and applies filesystem permissions. Only your assigned files are writable.</li>
+          <li><strong>GitHub synchronization</strong> — The <code>delegate</code> command writes the plan to GitHub Issues, a Project board, and scope manifests. Assignments are written back to <code>.plansync/plan.json</code>.</li>
+          <li><strong>Scope enforcement + context</strong> — The <code>sync</code> command walks the repo and applies filesystem permissions. Only your assigned files are writable. It also generates per-user context files at <code>.plansync/context/&lt;username&gt;/</code>.</li>
           <li><strong>CI monitoring</strong> — A GitHub Action checks every PR for scope violations. A scheduled action flags stalled tasks.</li>
         </ol>
 
@@ -210,7 +209,7 @@
 
         <h2 id="context-files">Context files</h2>
 
-        <p>PlanSync generates a context file per agent tool per task, compatible with 28+ coding agents:</p>
+        <p>When you run <code>plansync sync --user &lt;username&gt;</code>, PlanSync generates per-user context files containing only the tasks assigned to you. Compatible with 28+ coding agents:</p>
         <table>
           <tr><th>File</th><th>Agents</th></tr>
           <tr><td><code>AGENTS.md</code></td><td>OpenCode, Codex CLI, Cursor, GitHub Copilot, VS Code AI, Devin, Aider, Zed, Warp, JetBrains Junie, Gemini CLI, Goose, Factory, Amp, Jules + 14 more</td></tr>
@@ -222,9 +221,11 @@
           <tr><td><code>.continue/rules/00-plansync.md</code></td><td>Continue.dev</td></tr>
         </table>
 
-        <p>Each file tells the agent its task description, scope globs, acceptance criteria, and dependencies. The agent can read the full project but is instructed to only write within its scope.</p>
-        <p>All context files use <code>&lt;!-- plansync --&gt;</code> / <code>&lt;!-- end-plansync --&gt;</code> markers. If you already have custom instructions in these files (e.g. coding conventions, testing preferences), PlanSync appends to or updates its section in-place — your content is never overwritten.</p>
-        <p><strong>Adding more agents:</strong> Drop a template file into <code>.plansync/templates/</code> and it will be rendered at delegate time. The filename becomes the output path (e.g., <code>.plansync/templates/.my-agent.md.tmpl</code> → <code>.my-agent.md</code>). All templates receive <code>projectTitle</code>, <code>taskDescription</code>, <code>scopeList</code>, <code>scopeGlobs</code>, <code>acceptanceList</code>, and <code>dependencyList</code> variables.</p>
+        <p>Files are written to <code>.plansync/context/&lt;username&gt;/</code> and use <code>&lt;!-- plansync --&gt;</code> / <code>&lt;!-- end-plansync --&gt;</code> markers. The directory is gitignored so each team member gets their own view. To use, tell your agent to read <code>.plansync/context/&lt;your-username&gt;/</code> after running <code>plansync sync</code>.</p>
+
+        <p>The root <code>AGENTS.md</code> (written by <code>plansync init</code>) always contains the project planning instructions for the admin's agent — it is not overwritten by sync.</p>
+
+        <p><strong>Adding more agents:</strong> Drop a template file into <code>.plansync/templates/</code> and it will be rendered for every user at sync time. The filename becomes the output path (e.g., <code>.plansync/templates/.my-agent.md.tmpl</code> → <code>.plansync/context/&lt;user&gt;/.my-agent.md</code>). All templates receive <code>{{username}}</code>, <code>{{userTaskCount}}</code>, <code>{{taskList}}</code>, <code>{{projectTitle}}</code>, <code>{{projectDescription}}</code>, and <code>{{scopeGlobs}}</code> variables.</p>
 
       </div>
 

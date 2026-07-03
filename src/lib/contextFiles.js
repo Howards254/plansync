@@ -49,25 +49,73 @@ function resolveDependencyNames(task, tasks) {
   });
 }
 
-function generateContextFile(templatePath, plan, task) {
-  const templateText = fs.readFileSync(templatePath, 'utf-8');
-  const dependencyNames = resolveDependencyNames(task, plan.tasks);
+function buildUserTaskList(plan, username) {
+  const userTasks = plan.tasks.filter(t => t.assignedTo === username);
+  if (userTasks.length === 0) return '  (no tasks assigned)';
 
-  const vars = {
-    projectTitle: plan.title,
-    projectDescription: plan.description,
-    taskId: task.id,
-    taskTitle: task.title,
-    taskDescription: task.description,
-    scopeList: formatList(task.scope),
-    scopeGlobs: (task.scope || []).join(', '),
-    acceptanceList: formatList(task.acceptanceCriteria),
-    dependencyList: dependencyNames.length > 0
-      ? formatList(dependencyNames)
-      : '  (none — this task has no dependencies)',
-  };
+  return userTasks.map(task => {
+    const depNames = resolveDependencyNames(task, plan.tasks);
+    const depStr = depNames.length > 0
+      ? formatList(depNames)
+      : '  (none — this task has no dependencies)';
 
-  return render(templateText, vars);
+    return [
+      `### ${task.id}: ${task.title}`,
+      `${task.description}`,
+      '',
+      `**Scope:** ${(task.scope || []).join(', ')}`,
+      '',
+      '**Acceptance Criteria:**',
+      `${formatList(task.acceptanceCriteria)}`,
+      '',
+      '**Dependencies:**',
+      `${depStr}`,
+      '',
+      '**Status:** ' + (task.status || 'ready'),
+    ].join('\n');
+  }).join('\n\n');
+}
+
+function generateForUser(root, plan, username) {
+  const userTasks = plan.tasks.filter(t => t.assignedTo === username);
+  if (userTasks.length === 0) return {};
+
+  const files = {};
+  const contextDir = path.join(root, '.plansync', 'context', username);
+  if (!fs.existsSync(contextDir)) {
+    fs.mkdirSync(contextDir, { recursive: true });
+  }
+
+  for (const [filename, templatePath] of Object.entries(getAllTemplates(root))) {
+    const templateText = fs.readFileSync(templatePath, 'utf-8');
+
+    const allScopeGlobs = [...new Set(userTasks.flatMap(t => t.scope || []))];
+    const allAcceptance = userTasks.flatMap(t => t.acceptanceCriteria || []);
+
+    const vars = {
+      username,
+      userTaskCount: String(userTasks.length),
+      taskList: buildUserTaskList(plan, username),
+      projectTitle: plan.title,
+      projectDescription: plan.description,
+      scopeGlobs: allScopeGlobs.join(', '),
+      scopeList: formatList(allScopeGlobs),
+      acceptanceList: formatList(allAcceptance),
+      taskId: userTasks.map(t => t.id).join(', '),
+      taskTitle: userTasks.map(t => t.title).join(', '),
+    };
+
+    const filePath = path.join(contextDir, filename);
+    const fileDir = path.dirname(filePath);
+    if (!fs.existsSync(fileDir)) {
+      fs.mkdirSync(fileDir, { recursive: true });
+    }
+    const rendered = mergeOrWrite(filePath, render(templateText, vars));
+    fs.writeFileSync(filePath, rendered);
+    files[filename] = filePath;
+  }
+
+  return files;
 }
 
 function mergeOrWrite(filePath, content, tag = 'plansync') {
@@ -81,40 +129,13 @@ function mergeOrWrite(filePath, content, tag = 'plansync') {
     const endIdx = existing.indexOf(endMarker);
 
     if (startIdx !== -1 && endIdx !== -1) {
-      // Replace existing PlanSync section in-place
       return existing.slice(0, startIdx) + taggedContent + existing.slice(endIdx + endMarker.length);
     } else {
-      // Append to end of existing file
       return existing.trimEnd() + '\n\n' + taggedContent + '\n';
     }
   }
 
-  // Write fresh file
   return taggedContent + '\n';
-}
-
-function generateAll(root, plan, task) {
-  const files = {};
-  for (const [filename, templatePath] of Object.entries(getAllTemplates(root))) {
-    files[filename] = generateContextFile(templatePath, plan, task);
-  }
-  return files;
-}
-
-function writeAll(root, plan, task) {
-  const files = generateAll(root, plan, task);
-  const written = [];
-  for (const [filename, content] of Object.entries(files)) {
-    const filePath = path.join(root, filename);
-    const dir = path.dirname(filePath);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    const merged = mergeOrWrite(filePath, content);
-    fs.writeFileSync(filePath, merged);
-    written.push(filePath);
-  }
-  return written;
 }
 
 function renderAdminContext(owner, repo) {
@@ -160,4 +181,4 @@ Tell the admin to run \`plansync delegate\` to push the plan to GitHub, create I
 *PlanSync initialized for ${owner}/${repo}*`;
 }
 
-module.exports = { generateAll, writeAll, generateContextFile, BUILT_IN_TEMPLATES, getAllTemplates, renderAdminContext, mergeOrWrite };
+module.exports = { generateForUser, BUILT_IN_TEMPLATES, getAllTemplates, renderAdminContext, mergeOrWrite };

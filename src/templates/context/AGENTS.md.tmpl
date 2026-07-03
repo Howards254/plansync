@@ -1,19 +1,15 @@
-# Agent Instructions — {{taskId}}: {{taskTitle}}
+# Agent Instructions — {{username}} for {{projectTitle}}
 
-## Project
-{{projectTitle}}: {{projectDescription}}
+{{projectDescription}}
 
-## Your Assigned Task
-{{taskDescription}}
+## Your Assigned Tasks ({{userTaskCount}} total)
 
-## File Scope
-You may write to files matching:
-{{scopeList}}
+{{taskList}}
 
-All other files are READ-ONLY. This is enforced at the filesystem level.
-
-## What Success Looks Like
-{{acceptanceList}}
+## File Permissions
+You may write to files matching the scopes listed above.
+All other files are READ-ONLY. This is enforced at the filesystem level by `plansync sync`.
 
 ## Related Tasks (read-only access)
-{{dependencyList}}
+Tasks assigned to other collaborators are in PROJECT_PLAN.md and on the GitHub Project board.
+You may read their files for context but cannot modify them.

@@ -39,8 +39,9 @@ program
 program
   .command('delegate')
   .description('Write the approved plan to GitHub Issues and Projects')
-  .action(() => {
-    delegateCmd().catch(err => {
+  .option('--auto', 'Skip interactive reassignment, use round-robin defaults (still shows approval prompt)')
+  .action((opts) => {
+    delegateCmd(opts.auto || false).catch(err => {
       console.error(err.message);
       process.exit(1);
     });
