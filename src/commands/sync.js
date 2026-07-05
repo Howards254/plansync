@@ -1,9 +1,10 @@
 const path = require('path');
 const fs = require('fs');
 const config = require('../lib/config');
+const github = require('../lib/github');
 const { applyScope, clearScope, getCurrentUsername } = require('../lib/permissions');
 const { validate } = require('../lib/planSchema');
-const { generateForUser } = require('../lib/contextFiles');
+const { generateForUser, generateAdminView } = require('../lib/contextFiles');
 
 function listValidAssignees(plan) {
   const assignees = new Set(
@@ -90,10 +91,38 @@ async function sync() {
     process.exit(1);
   }
 
-  // Fix E: Supervisor mode — admin keeps full write access, only generates context files
+  // Detect if user is the repo admin
   const supervisorMode = process.env.PLANSYNC_SUPERVISOR === '1';
+  let isAdmin = false;
 
-  if (!supervisorMode) {
+  if (!supervisorMode && cfg.githubToken && cfg.owner && cfg.repo) {
+    try {
+      const octokit = github.createOctokit(cfg.githubToken);
+      const { data: repoData } = await octokit.repos.get({ owner: cfg.owner, repo: cfg.repo });
+      isAdmin = repoData.permissions && repoData.permissions.admin;
+    } catch {
+      // Can't check admin status — treat as collaborator
+    }
+  }
+
+  // Apply scope permissions based on mode
+  if (isAdmin) {
+    console.log('\nAdmin detected — keeping all files writable for %s.', username);
+    try {
+      const result = clearScope(root);
+      console.log('  Reset %d files to writable (0o644).', result.reset);
+    } catch (err) {
+      console.error('Failed to reset permissions: %s', err.message);
+    }
+  } else if (supervisorMode) {
+    console.log('\nSupervisor mode: keeping all files writable for %s.', username);
+    try {
+      const result = clearScope(root);
+      console.log('  Reset %d files to writable (0o644).', result.reset);
+    } catch (err) {
+      console.error('Failed to reset permissions: %s', err.message);
+    }
+  } else {
     console.log('\nApplying scope permissions for %s...', username);
     try {
       const result = applyScope(root, username, plan);
@@ -106,33 +135,49 @@ async function sync() {
       console.error('Failed to apply permissions: %s', err.message);
       process.exit(1);
     }
-  } else {
-    console.log('\nSupervisor mode: keeping all files writable for %s.', username);
-    try {
-      const result = clearScope(root);
-      console.log('  Reset %d files to writable (0o644).', result.reset);
-    } catch (err) {
-      console.error('Failed to reset permissions: %s', err.message);
-    }
   }
 
-  // Generate per-user context files
+  // Generate context files based on mode
   console.log('\nGenerating context files for %s...', username);
-  try {
-    const contextFiles = generateForUser(root, plan, username);
-    const userTaskCount = plan.tasks.filter(t => t.assignedTo === username).length;
 
-    if (Object.keys(contextFiles).length > 0) {
-      console.log('  Wrote %d context file(s) to .plansync/context/%s/', Object.keys(contextFiles).length, username);
-      console.log('  Your agent will read these tasks from AGENTS.md at the project root.');
-      for (const [filename] of Object.entries(contextFiles)) {
-        console.log('    %s', filename);
-      }
-    } else {
-      console.log('  No tasks assigned to %s — context files skipped.', username);
+  if (isAdmin) {
+    try {
+      const adminFiles = generateAdminView(root, plan, username, cfg.owner, cfg.repo);
+      const userTaskCount = plan.tasks.filter(t => t.assignedTo === username).length;
+      console.log('  Wrote admin context to root AGENTS.md');
+      console.log('  Includes: planning instructions, %d assigned task(s), and all-tasks overview table', userTaskCount);
+      console.log('  Full context in .plansync/context/%s/', username);
+    } catch (err) {
+      console.error('  Failed to generate admin context: %s', err.message);
     }
-  } catch (err) {
-    console.error('  Failed to generate context files: %s', err.message);
+  } else if (supervisorMode) {
+    try {
+      const contextFiles = generateForUser(root, plan, username, true);
+      const userTaskCount = plan.tasks.filter(t => t.assignedTo === username).length;
+      if (Object.keys(contextFiles).length > 0) {
+        console.log('  Wrote %d context file(s) to .plansync/context/%s/ (root untouched)', Object.keys(contextFiles).length, username);
+      } else {
+        console.log('  No tasks assigned to %s — context files skipped.', username);
+      }
+    } catch (err) {
+      console.error('  Failed to generate context files: %s', err.message);
+    }
+  } else {
+    try {
+      const contextFiles = generateForUser(root, plan, username);
+      const userTaskCount = plan.tasks.filter(t => t.assignedTo === username).length;
+      if (Object.keys(contextFiles).length > 0) {
+        console.log('  Wrote %d context file(s) to .plansync/context/%s/', Object.keys(contextFiles).length, username);
+        console.log('  Your agent will read these tasks from AGENTS.md at the project root.');
+        for (const [filename] of Object.entries(contextFiles)) {
+          console.log('    %s', filename);
+        }
+      } else {
+        console.log('  No tasks assigned to %s — context files skipped.', username);
+      }
+    } catch (err) {
+      console.error('  Failed to generate context files: %s', err.message);
+    }
   }
 }
 

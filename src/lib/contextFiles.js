@@ -78,7 +78,140 @@ function buildUserTaskList(plan, username) {
   }).join('\n\n');
 }
 
-function generateForUser(root, plan, username) {
+function buildAdminOverview(plan) {
+  const lines = [];
+  lines.push('| Task | Title | Assignee | Status | Scope |');
+  lines.push('|------|-------|----------|--------|-------|');
+  for (const task of plan.tasks) {
+    const assignee = task.assignedTo || '—';
+    lines.push(`| ${task.id} | ${task.title} | ${assignee} | ${task.status || 'ready'} | ${(task.scope || []).join(', ')} |`);
+  }
+  return lines.join('\n');
+}
+
+function generateAdminView(root, plan, username, owner, repo) {
+  const userTasks = plan.tasks.filter(t => t.assignedTo === username);
+  const userTaskCount = userTasks.length;
+  const overviewTable = buildAdminOverview(plan);
+
+  // Build admin-specific AGENTS.md content
+  const adminContent = [
+    `# PlanSync — Admin Context — ${username}`,
+    '',
+    `## Project: ${plan.title}`,
+    plan.description,
+    '',
+    '## Your Role',
+    'You are the coding agent for the project admin. You can plan new tasks for this project AND work on your assigned tasks.',
+    '',
+    '## Your Assigned Tasks (' + userTaskCount + ' total)',
+    '',
+    userTasks.length > 0 ? buildUserTaskList(plan, username) : 'No tasks assigned — you are supervising only.',
+    '',
+    '## All Tasks Overview',
+    '',
+    overviewTable,
+    '',
+    '## File Permissions',
+    'You have full write access to all files as the project admin. Use this to oversee and coordinate all tasks.',
+    '',
+    '## Plan Format (for re-planning)',
+    'To update the plan, edit `.plansync/plan.json` and run `plansync delegate --update`.',
+    'The plan file follows this JSON schema:',
+    '',
+    '```json',
+    '{',
+    '  "title": "Project name",',
+    '  "description": "Describe what this project does",',
+    '  "tasks": [',
+    '    {',
+    '      "id": "T001",',
+    '      "title": "Short task name",',
+    '      "description": "What needs to be built",',
+    '      "scope": ["src/path/to/files/**"],',
+    '      "dependencies": [],',
+    '      "acceptanceCriteria": ["Criterion 1", "Criterion 2"],',
+    '      "assignedTo": "",',
+    '      "status": "ready"',
+    '    }',
+    '  ]',
+    '}',
+    '```',
+    '',
+    '- `id`: Must be `T001`, `T002`, etc.',
+    '- `scope`: Glob patterns defining which files this task can modify',
+    '- `dependencies`: IDs of tasks this task depends on (optional)',
+    '- `status`: One of `ready`, `in_progress`, `blocked`, `done`',
+    '',
+    '---',
+    '',
+    `*PlanSync admin context for ${owner}/${repo}*`,
+  ].join('\n');
+
+  // Write admin context to root AGENTS.md
+  const rootAgentsPath = path.join(root, 'AGENTS.md');
+  const rootAgentsDir = path.dirname(rootAgentsPath);
+  if (!fs.existsSync(rootAgentsDir)) {
+    fs.mkdirSync(rootAgentsDir, { recursive: true });
+  }
+  const merged = mergeOrWrite(rootAgentsPath, adminContent);
+  fs.writeFileSync(rootAgentsPath, merged);
+
+  // Also write admin context to .plansync/context/<username>/
+  const contextDir = path.join(root, '.plansync', 'context', username);
+  if (!fs.existsSync(contextDir)) {
+    fs.mkdirSync(contextDir, { recursive: true });
+  }
+  const contextPath = path.join(contextDir, 'AGENTS.md');
+  fs.writeFileSync(contextPath, merged);
+
+  // Write per-user context to other root files (using existing templates)
+  const userTaskCountForTemplate = userTasks.length;
+  if (userTaskCountForTemplate > 0) {
+    for (const [filename, templatePath] of Object.entries(getAllTemplates(root))) {
+      if (filename === 'AGENTS.md') continue; // Already written above
+
+      const templateText = fs.readFileSync(templatePath, 'utf-8');
+      const allScopeGlobs = [...new Set(userTasks.flatMap(t => t.scope || []))];
+      const allAcceptance = userTasks.flatMap(t => t.acceptanceCriteria || []);
+
+      const vars = {
+        username,
+        userTaskCount: String(userTaskCountForTemplate),
+        taskList: buildUserTaskList(plan, username),
+        projectTitle: plan.title,
+        projectDescription: plan.description,
+        scopeGlobs: allScopeGlobs.join(', '),
+        scopeList: formatList(allScopeGlobs),
+        acceptanceList: formatList(allAcceptance),
+        taskId: userTasks.map(t => t.id).join(', '),
+        taskTitle: userTasks.map(t => t.title).join(', '),
+      };
+
+      // Write to .plansync/context/<username>/
+      const filePath = path.join(contextDir, filename);
+      const fileDir = path.dirname(filePath);
+      if (!fs.existsSync(fileDir)) {
+        fs.mkdirSync(fileDir, { recursive: true });
+      }
+      const rendered = mergeOrWrite(filePath, render(templateText, vars));
+      fs.writeFileSync(filePath, rendered);
+
+      // Write to root
+      const rootFilePath = path.join(root, filename);
+      const rootFileDir = path.dirname(rootFilePath);
+      if (!fs.existsSync(rootFileDir)) {
+        fs.mkdirSync(rootFileDir, { recursive: true });
+      }
+      const rootRendered = mergeOrWrite(rootFilePath, render(templateText, vars));
+      fs.writeFileSync(rootFilePath, rootRendered);
+    }
+  }
+
+  return { 'AGENTS.md': contextPath };
+}
+
+function generateForUser(root, plan, username, skipRoot) {
   const userTasks = plan.tasks.filter(t => t.assignedTo === username);
   if (userTasks.length === 0) return {};
 
@@ -117,13 +250,15 @@ function generateForUser(root, plan, username) {
     files[filename] = filePath;
 
     // Also write to root context file (agents auto-discover root files)
-    const rootFilePath = path.join(root, filename);
-    const rootFileDir = path.dirname(rootFilePath);
-    if (!fs.existsSync(rootFileDir)) {
-      fs.mkdirSync(rootFileDir, { recursive: true });
+    if (!skipRoot) {
+      const rootFilePath = path.join(root, filename);
+      const rootFileDir = path.dirname(rootFilePath);
+      if (!fs.existsSync(rootFileDir)) {
+        fs.mkdirSync(rootFileDir, { recursive: true });
+      }
+      const rootRendered = mergeOrWrite(rootFilePath, render(templateText, vars));
+      fs.writeFileSync(rootFilePath, rootRendered);
     }
-    const rootRendered = mergeOrWrite(rootFilePath, render(templateText, vars));
-    fs.writeFileSync(rootFilePath, rootRendered);
   }
 
   return files;
@@ -192,4 +327,4 @@ Tell the admin to run \`plansync delegate\` to push the plan to GitHub, create I
 *PlanSync initialized for ${owner}/${repo}*`;
 }
 
-module.exports = { generateForUser, BUILT_IN_TEMPLATES, ROOT_CONTEXT_FILES, getAllTemplates, renderAdminContext, mergeOrWrite };
+module.exports = { generateForUser, generateAdminView, BUILT_IN_TEMPLATES, ROOT_CONTEXT_FILES, getAllTemplates, renderAdminContext, mergeOrWrite };

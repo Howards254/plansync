@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.5 — 2026-07-03
+
+- **Auto-detect admin in sync** — `plansync sync` now detects if you're the repo admin via GitHub API. Admins get a rich context including planning instructions, their assigned tasks, AND an all-tasks overview table showing every collaborator's assignments.
+- **Admin context at root** — Admin's root `AGENTS.md` now contains: planning instructions, their own tasks, and a full overview table of all tasks/assignees. Agents auto-discover this — zero configuration.
+- **--supervisor refined** — `--supervisor` flag now preserves root context files (doesn't overwrite) and writes context only to `.plansync/context/<username>/`. Use when you want the minimal view without touching root files.
+- **Collaborator experience unchanged** — non-admin users continue to get their per-user tasks at root, locked to their assigned scope.
+
 ## 0.3.4 — 2026-07-03
 
 - **Root context files** — sync now writes per-user task context to root context files (AGENTS.md, CLAUDE.md, .cursorrules, etc.) in addition to `.plansync/context/<username>/`. Agents auto-discover root files, so each collaborator's agent now sees only their assigned tasks.
