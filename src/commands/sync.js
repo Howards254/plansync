@@ -124,10 +124,10 @@ async function sync() {
 
     if (Object.keys(contextFiles).length > 0) {
       console.log('  Wrote %d context file(s) to .plansync/context/%s/', Object.keys(contextFiles).length, username);
+      console.log('  Your agent will read these tasks from AGENTS.md at the project root.');
       for (const [filename] of Object.entries(contextFiles)) {
-        console.log('    .plansync/context/%s/%s', username, filename);
+        console.log('    %s', filename);
       }
-      console.log('\nTo use: tell your agent to read .plansync/context/%s/ for task-specific instructions.', username);
     } else {
       console.log('  No tasks assigned to %s — context files skipped.', username);
     }

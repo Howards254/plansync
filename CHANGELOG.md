@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.4 — 2026-07-03
+
+- **Root context files** — sync now writes per-user task context to root context files (AGENTS.md, CLAUDE.md, .cursorrules, etc.) in addition to `.plansync/context/<username>/`. Agents auto-discover root files, so each collaborator's agent now sees only their assigned tasks.
+- **Root context files gitignored** — init adds all root context files to `.gitignore` and `git rm --cached` them. Each team member gets their own local root context files via `plansync sync`.
+- **Admin context preserved** — init writes admin planning instructions to `.plansync/admin-context.md` (committed) in addition to local root `AGENTS.md`.
+- **Clean handling** — clean removes root context files from `.gitignore`, strips `<!-- plansync -->` blocks, and deletes `.plansync/admin-context.md`.
+
 ## 0.3.3 — 2026-07-03
 
 - **Fix: delegate crash on read-only files** — delegate now resets file permissions before writing, preventing EACCES errors when PROJECT_PLAN.md is read-only from a previous sync

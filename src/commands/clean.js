@@ -3,16 +3,7 @@ const fs = require('fs');
 const readline = require('readline');
 const config = require('../lib/config');
 const github = require('../lib/github');
-
-const CONTEXT_FILES = [
-  'AGENTS.md',
-  'CLAUDE.md',
-  '.cursorrules',
-  '.windsurfrules',
-  '.github/copilot-instructions.md',
-  'GEMINI.md',
-  '.continue/rules/00-plansync.md',
-];
+const { ROOT_CONTEXT_FILES } = require('../lib/contextFiles');
 
 const WORKFLOW_FILES = [
   'publish.yml',
@@ -58,7 +49,7 @@ async function clean() {
   let removed = 0;
 
   // Remove context file blocks
-  for (const file of CONTEXT_FILES) {
+  for (const file of ROOT_CONTEXT_FILES) {
     const filePath = path.join(root, file);
     if (removePlansyncBlocks(filePath)) {
       console.log('  Removed PlanSync block from %s', file);
@@ -98,16 +89,25 @@ async function clean() {
     }
   }
 
-  // Remove .plansync/config.json from .gitignore
+  // Remove PlanSync entries from .gitignore
   const gitignorePath = path.join(root, '.gitignore');
   if (fs.existsSync(gitignorePath)) {
     const gitignore = fs.readFileSync(gitignorePath, 'utf-8');
-    const lines = gitignore.split('\n').filter(l => l.trim() !== '.plansync/config.json');
-    if (lines.length !== gitignore.split('\n').length) {
-      fs.writeFileSync(gitignorePath, lines.join('\n'));
-      console.log('  Removed .plansync/config.json from .gitignore');
+    const plansyncEntries = ['.plansync/config.json', '.plansync/context/', ...ROOT_CONTEXT_FILES];
+    const remaining = gitignore.split('\n').filter(l => !plansyncEntries.includes(l.trim()));
+    if (remaining.length !== gitignore.split('\n').length) {
+      fs.writeFileSync(gitignorePath, remaining.join('\n'));
+      console.log('  Removed PlanSync entries from .gitignore');
       removed++;
     }
+  }
+
+  // Delete .plansync/admin-context.md
+  const adminContextPath = path.join(root, '.plansync', 'admin-context.md');
+  if (fs.existsSync(adminContextPath)) {
+    fs.unlinkSync(adminContextPath);
+    console.log('  Removed .plansync/admin-context.md');
+    removed++;
   }
 
   // Remove PROJECT_PLAN.md if it exists and contains plansync markers

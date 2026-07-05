@@ -11,6 +11,8 @@ const BUILT_IN_TEMPLATES = {
   '.continue/rules/00-plansync.md': path.join(__dirname, '..', 'templates', 'context', 'continue-rules.md.tmpl'),
 };
 
+const ROOT_CONTEXT_FILES = Object.keys(BUILT_IN_TEMPLATES);
+
 function discoverUserTemplates(root) {
   const userDir = path.join(root, '.plansync', 'templates');
   if (!fs.existsSync(userDir)) return {};
@@ -113,6 +115,15 @@ function generateForUser(root, plan, username) {
     const rendered = mergeOrWrite(filePath, render(templateText, vars));
     fs.writeFileSync(filePath, rendered);
     files[filename] = filePath;
+
+    // Also write to root context file (agents auto-discover root files)
+    const rootFilePath = path.join(root, filename);
+    const rootFileDir = path.dirname(rootFilePath);
+    if (!fs.existsSync(rootFileDir)) {
+      fs.mkdirSync(rootFileDir, { recursive: true });
+    }
+    const rootRendered = mergeOrWrite(rootFilePath, render(templateText, vars));
+    fs.writeFileSync(rootFilePath, rootRendered);
   }
 
   return files;
@@ -181,4 +192,4 @@ Tell the admin to run \`plansync delegate\` to push the plan to GitHub, create I
 *PlanSync initialized for ${owner}/${repo}*`;
 }
 
-module.exports = { generateForUser, BUILT_IN_TEMPLATES, getAllTemplates, renderAdminContext, mergeOrWrite };
+module.exports = { generateForUser, BUILT_IN_TEMPLATES, ROOT_CONTEXT_FILES, getAllTemplates, renderAdminContext, mergeOrWrite };

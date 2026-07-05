@@ -4,7 +4,7 @@ const readline = require('readline');
 const { execSync } = require('child_process');
 const config = require('../lib/config');
 const github = require('../lib/github');
-const { renderAdminContext, mergeOrWrite } = require('../lib/contextFiles');
+const { renderAdminContext, mergeOrWrite, ROOT_CONTEXT_FILES } = require('../lib/contextFiles');
 
 function ask(question) {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -89,9 +89,9 @@ async function init() {
   config.write(root, cfg);
   console.log('Saved credentials to .plansync/config.json');
 
-  // --- Ensure .plansync/config.json and .plansync/context/ are gitignored ---
+  // --- Ensure .plansync/config.json, .plansync/context/, and root context files are gitignored ---
   const gitignorePath = path.join(root, '.gitignore');
-  const gitignoreEntries = ['.plansync/config.json', '.plansync/context/'];
+  const gitignoreEntries = ['.plansync/config.json', '.plansync/context/', ...ROOT_CONTEXT_FILES];
   let gitignore = '';
   if (fs.existsSync(gitignorePath)) {
     gitignore = fs.readFileSync(gitignorePath, 'utf-8');
@@ -144,11 +144,18 @@ async function init() {
   }
 
   // --- Write admin agent context ---
-  const agentsPath = path.join(root, 'AGENTS.md');
   const adminContent = renderAdminContext(remote.owner, remote.repo);
+
+  // Write to root AGENTS.md (gitignored — local for admin's agent to read)
+  const agentsPath = path.join(root, 'AGENTS.md');
   const merged = mergeOrWrite(agentsPath, adminContent);
   fs.writeFileSync(agentsPath, merged);
   console.log('Added PlanSync planning instructions to AGENTS.md');
+
+  // Write to .plansync/admin-context.md (committed — for other clones to reference)
+  const adminContextPath = path.join(root, '.plansync', 'admin-context.md');
+  fs.writeFileSync(adminContextPath, adminContent.trimEnd() + '\n');
+  console.log('Wrote admin context to .plansync/admin-context.md (committed)');
 
   console.log('\nPlansync initialized for %s/%s', remote.owner, remote.repo);
 }
