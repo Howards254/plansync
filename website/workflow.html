@@ -114,9 +114,9 @@
             <td>Authenticates with GitHub (browser or PAT), saves credentials to <code>.plansync/config.json</code>, copies CI workflows to <code>.github/workflows/</code>, installs a post-merge git hook, writes <code>AGENTS.md</code> with planning instructions for your coding agent, and adds config to <code>.gitignore</code>.</td>
           </tr>
           <tr>
-            <td><code>plansync delegate</code></td>
+            <td><code>plansync delegate [--update]</code></td>
             <td><strong>Your plan is ready</strong> — agent has written <code>.plansync/plan.json</code></td>
-            <td>Shows the plan, asks for task assignments (numbered menu: <code>"1=b"</code> or <code>"all=a"</code>), then creates GitHub Issues, a Project v2 board, scope manifests (<code>.plansync/scopes/*.json</code>), and <code>PROJECT_PLAN.md</code>. Commits everything and pushes. Use <code>--auto</code> to skip reassignment and use round-robin defaults.</td>
+            <td>Shows the plan, asks for task assignments (numbered menu: <code>"1=b"</code> or <code>"all=a"</code>), then creates GitHub Issues, a Project v2 board, scope manifests (<code>.plansync/scopes/*.json</code>), and <code>PROJECT_PLAN.md</code>. Commits everything and pushes. Use <code>--auto</code> to skip reassignment and use round-robin defaults. Use <code>--update</code> to re-delegate after modifying the plan — updates existing Issues instead of creating duplicates.</td>
           </tr>
           <tr>
             <td><code>plansync status</code></td>
@@ -124,9 +124,9 @@
             <td>Prints the plan with live GitHub Issue states. Shows task status, assignee, scope globs, blocking dependency chains, and a summary count.</td>
           </tr>
           <tr>
-            <td><code>plansync sync [--user &lt;name&gt;]</code></td>
+            <td><code>plansync sync [--user &lt;name&gt;] [--supervisor]</code></td>
             <td><strong>Collaborator joining</strong> the project</td>
-            <td>Makes assigned files writable (<code>chmod 644</code>) and everything else read-only (<code>chmod 444</code>). Also generates per-user context files at <code>.plansync/context/&lt;name&gt;/</code> containing only your assigned tasks. Uses <code>--user</code> flag, <code>PLANSYNC_USER</code> env var, or auto-detects from GitHub. Use <code>--reset</code> to restore all files to writable.</td>
+            <td>Makes assigned files writable (<code>chmod 644</code>) and everything else read-only (<code>chmod 444</code>). Also generates per-user context files at <code>.plansync/context/&lt;name&gt;/</code> containing only your assigned tasks. Uses <code>--user</code> flag, <code>PLANSYNC_USER</code> env var, or auto-detects from GitHub. Use <code>--supervisor</code> to keep all files writable (for project owners). Use <code>--reset</code> to restore all files to writable.</td>
           </tr>
           <tr>
             <td><code>plansync plan &lt;desc&gt;</code></td>
@@ -169,6 +169,54 @@
 <span class="comment">  # Context files generated at .plansync/context/janedoe/</span></code></pre>
         </div>
 
+        <h2 id="updating-plans">Updating plans after delegation</h2>
+
+        <p>Plans change. When you need to modify the plan after delegation:</p>
+
+        <ol>
+          <li><strong>Edit <code>.plansync/plan.json</code></strong> — Add, remove, or modify tasks. You can also regenerate it with <code>plansync plan</code> if using the LLM.</li>
+          <li><strong>Re-delegate with <code>--update</code></strong>:
+            <div class="code-block">
+              <pre><code><span class="prompt">$</span> plansync delegate --update
+<span class="comment">  # Fetching existing Issues...</span>
+<span class="comment">  # ✓ Updated Issue #1 (T001: Set up auth)</span>
+<span class="comment">  # ✓ Created Issue #4 (T004: Write tests)</span>
+<span class="comment">  # ✓ Closed Issue #2 (T002: removed from plan)</span>
+<span class="comment">  # ✓ Committing and pushing...</span></code></pre>
+            </div>
+            This intelligently updates GitHub: new tasks create new Issues, changed tasks update existing Issues, removed tasks close their Issues with a comment explaining removal.
+          </li>
+          <li><strong>Major rewrites</strong> — If you've made sweeping changes (reordered all tasks, changed scope structure), use <code>plansync clean</code> followed by a fresh <code>plansync delegate</code> for a clean slate.</li>
+        </ol>
+
+        <p><strong>Note:</strong> Only repository admins (owners) can run <code>plansync delegate</code>. Collaborators with push access can run <code>plansync sync</code> to lock their scope, but cannot delegate new plans.</p>
+
+        <h2 id="supervisor-mode">Supervisor mode for project owners</h2>
+
+        <p>As the project owner, you may want to oversee all tasks without scope restrictions. Use <code>--supervisor</code> mode:</p>
+
+        <div class="code-block">
+          <pre><code><span class="prompt">$</span> plansync sync --supervisor
+<span class="comment">  # ✓ All files remain writable (supervisor mode)</span>
+<span class="comment">  # ✓ Generated context files for howards254</span>
+<span class="comment">  # ✓ Context files written to .plansync/context/howards254/</span></code></pre>
+        </div>
+
+        <p>This keeps all files writable for you while still generating your context files. You can read and write anywhere in the project, while collaborators remain locked to their assigned scopes.</p>
+
+        <p><strong>When to use supervisor mode:</strong></p>
+        <ul>
+          <li>You're the project owner reviewing all work</li>
+          <li>You need to make cross-cutting changes (refactoring, bug fixes)</li>
+          <li>You're coordinating between multiple collaborators</li>
+        </ul>
+
+        <p><strong>When to use regular sync:</strong></p>
+        <ul>
+          <li>You're assigned specific tasks and want to stay within your scope</li>
+          <li>You want the same protection as collaborators (preventing accidental writes outside your scope)</li>
+        </ul>
+
       </div>
 
       <aside class="doc-sidebar">
@@ -176,6 +224,8 @@
         <ul>
           <li><a href="#commands">All commands</a></li>
           <li><a href="#end-to-end">End-to-end example</a></li>
+          <li><a href="#updating-plans">Updating plans</a></li>
+          <li><a href="#supervisor-mode">Supervisor mode</a></li>
         </ul>
       </aside>
     </div>

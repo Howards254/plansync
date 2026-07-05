@@ -97,7 +97,16 @@
         <p>Yes. PlanSync supports macOS, Linux, and Windows. Windows users should install <a href="https://git-scm.com/download/win">Git for Windows</a> (which includes Git Bash) and run PlanSync commands from Git Bash rather than cmd.exe or PowerShell. Browser opening, clipboard copy, and all CLI commands work on Windows. File permission enforcement is weaker on Windows (sets the read-only attribute rather than full Unix ACLs), so rely on the CI scope-check Action as the real backstop.</p>
 
         <h2 id="update-plan">How do I update the plan after delegation?</h2>
-        <p>Edit <code>.plansync/plan.json</code> (or regenerate with <code>plansync plan</code>), then run <code>plansync delegate</code> again. It will create new Issues for new tasks and skip existing ones.</p>
+        <p>Edit <code>.plansync/plan.json</code> (or regenerate with <code>plansync plan</code>), then run <code>plansync delegate --update</code>. This intelligently updates GitHub: new tasks create new Issues, changed tasks update existing Issues, and removed tasks close their Issues with a comment explaining the removal. For major rewrites, use <code>plansync clean</code> followed by a fresh <code>plansync delegate</code>.</p>
+
+        <h2 id="collaborator-delegate">Can collaborators run <code>plansync delegate</code>?</h2>
+        <p>No. Only repository admins (owners) can delegate plans. This prevents collaborators from accidentally overwriting the plan. Collaborators can run <code>plansync sync</code> to lock their scope and get context files, but they cannot delegate new plans or modify existing ones.</p>
+
+        <h2 id="admin-write">Can the admin write to other people's tasks?</h2>
+        <p>Yes. Use <code>plansync sync --supervisor</code> to keep all files writable while still getting your context files. This lets you oversee all tasks without scope restrictions. Supervisor mode is ideal for project owners who need to review all work, make cross-cutting changes, or coordinate between multiple collaborators.</p>
+
+        <h2 id="scope-violation">What happens if a collaborator tries to write outside their scope?</h2>
+        <p>They'll get an <code>EACCES</code> permission error from their editor or tool. The CI scope-check Action also flags scope violations in PRs as a backstop. If a collaborator needs to write outside their scope, they should either request a plan update from the admin or use <code>plansync sync --reset</code> to restore all files to writable (though this removes scope protection for everyone).</p>
       </div>
 
       <aside class="doc-sidebar">
@@ -111,6 +120,9 @@
           <li><a href="#no-sync">No sync?</a></li>
           <li><a href="#windows">Windows support</a></li>
           <li><a href="#update-plan">Update plan</a></li>
+          <li><a href="#collaborator-delegate">Collaborator delegate?</a></li>
+          <li><a href="#admin-write">Admin write access?</a></li>
+          <li><a href="#scope-violation">Scope violation?</a></li>
         </ul>
       </aside>
     </div>

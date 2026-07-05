@@ -90,18 +90,30 @@ async function sync() {
     process.exit(1);
   }
 
-  // Apply scope permissions
-  console.log('\nApplying scope permissions for %s...', username);
-  try {
-    const result = applyScope(root, username, plan);
-    console.log('\nPermission Summary:');
-    console.log('  Total files examined: %d', result.total);
-    console.log('  Writable (in scope):  %d', result.writable);
-    console.log('  Read-only (out of scope): %d', result.readonly);
-    console.log('\nPermissions synced.');
-  } catch (err) {
-    console.error('Failed to apply permissions: %s', err.message);
-    process.exit(1);
+  // Fix E: Supervisor mode — admin keeps full write access, only generates context files
+  const supervisorMode = process.env.PLANSYNC_SUPERVISOR === '1';
+
+  if (!supervisorMode) {
+    console.log('\nApplying scope permissions for %s...', username);
+    try {
+      const result = applyScope(root, username, plan);
+      console.log('\nPermission Summary:');
+      console.log('  Total files examined: %d', result.total);
+      console.log('  Writable (in scope):  %d', result.writable);
+      console.log('  Read-only (out of scope): %d', result.readonly);
+      console.log('\nPermissions synced.');
+    } catch (err) {
+      console.error('Failed to apply permissions: %s', err.message);
+      process.exit(1);
+    }
+  } else {
+    console.log('\nSupervisor mode: keeping all files writable for %s.', username);
+    try {
+      const result = clearScope(root);
+      console.log('  Reset %d files to writable (0o644).', result.reset);
+    } catch (err) {
+      console.error('Failed to reset permissions: %s', err.message);
+    }
   }
 
   // Generate per-user context files

@@ -121,13 +121,71 @@ PlanSync operates in four layers:
 | Command | Description |
 |---|---|
 | `plansync init` | Authenticate with GitHub, scaffold CI workflows and post-merge hook, write `AGENTS.md`, gitignore credentials |
-| `plansync delegate [--auto]` | Read `.plansync/plan.json` → numbered reassignment menu → create Issues, Project board, scope manifests → commit and push |
+| `plansync delegate [--auto] [--update]` | Read `.plansync/plan.json` → numbered reassignment menu → create Issues, Project board, scope manifests → commit and push. Only repo admins can delegate. |
 | `plansync status` | Print plan with live GitHub Issue states, blocking chains, summary counts |
-| `plansync sync [--user <name>] [--reset]` | Lock filesystem permissions + generate per-user context files at `.plansync/context/<name>/` |
+| `plansync sync [--user <name>] [--reset] [--supervisor]` | Lock filesystem permissions + generate per-user context files at `.plansync/context/<name>/` |
 | `plansync plan <description>` | (Optional) Draft a plan via LLM — requires `ANTHROPIC_API_KEY` |
 | `plansync clean` | Remove all PlanSync traces from the project |
 
 Use `--help` on any command for full options.
+
+### Delegate flags
+
+- `--auto` — Skip interactive reassignment menu, use round-robin defaults (still shows approval prompt)
+- `--update` — Update existing Issues instead of creating duplicates. Use this when you've modified the plan and want to re-delegate. New tasks create new Issues, changed tasks update existing Issues, removed tasks close their Issues.
+
+### Sync flags
+
+- `--user <name>` — Specify GitHub username (auto-detected if omitted)
+- `--reset` — Restore all files to writable (undo previous sync)
+- `--supervisor` — Supervisor mode: keep all files writable, only generate context files. Use this when you're the project owner and want to oversee all tasks without scope restrictions.
+
+---
+
+## Updating plans after delegation
+
+Plans change. When you need to modify the plan after delegation:
+
+1. **Edit `.plansync/plan.json`** — Add, remove, or modify tasks. You can also regenerate it with `plansync plan` if using the LLM.
+
+2. **Re-delegate with `--update`**:
+   ```sh
+   plansync delegate --update
+   ```
+   This intelligently updates GitHub:
+   - **New tasks** → create new Issues
+   - **Changed tasks** → update existing Issue body, assignee, and labels
+   - **Removed tasks** → close their Issues with a comment explaining removal
+
+3. **Major rewrites** — If you've made sweeping changes (reordered all tasks, changed scope structure), use `plansync clean` followed by a fresh `plansync delegate` for a clean slate.
+
+**Note:** Only repository admins can run `plansync delegate`. Collaborators with push access can run `plansync sync` to lock their scope, but cannot delegate new plans.
+
+---
+
+## Supervisor mode for project owners
+
+As the project owner, you may want to:
+- Oversee all tasks without scope restrictions
+- Review and modify any file in the project
+- Supervise collaborators while they work within their assigned scopes
+
+Use `--supervisor` mode:
+
+```sh
+plansync sync --supervisor
+```
+
+This keeps all files writable for you while still generating your context files at `.plansync/context/<your-username>/`. You can read and write anywhere in the project, while collaborators remain locked to their assigned scopes.
+
+**When to use supervisor mode:**
+- You're the project owner reviewing all work
+- You need to make cross-cutting changes (refactoring, bug fixes)
+- You're coordinating between multiple collaborators
+
+**When to use regular sync:**
+- You're assigned specific tasks and want to stay within your scope
+- You want the same protection as collaborators (preventing accidental writes outside your scope)
 
 ---
 
@@ -185,6 +243,14 @@ The root `AGENTS.md` (written by `plansync init`) always contains the project pl
 **Does this work with any coding agent?** Yes — 28+ agents read `AGENTS.md` natively. PlanSync also generates tool-specific files for Claude Code, Cursor, Copilot, Windsurf, Gemini CLI, and Continue.dev.
 
 **Does it work on Windows?** Yes — macOS, Linux, and Windows are all supported. Windows users should install [Git for Windows](https://git-scm.com/download/win) and use Git Bash for full functionality. File permission enforcement is weaker on Windows; rely on the CI scope-check as the backstop.
+
+**Can collaborators run `plansync delegate`?** No. Only repository admins (owners) can delegate plans. This prevents collaborators from accidentally overwriting the plan. Collaborators can run `plansync sync` to lock their scope and get context files.
+
+**What if I change my mind after delegating?** Edit `.plansync/plan.json` and run `plansync delegate --update`. This updates existing Issues instead of creating duplicates. For major rewrites, use `plansync clean` followed by a fresh `plansync delegate`.
+
+**Can the admin write to other people's tasks?** Yes. Use `plansync sync --supervisor` to keep all files writable while still getting your context files. This lets you oversee all tasks without scope restrictions.
+
+**What happens if a collaborator tries to write outside their scope?** They'll get an `EACCES` permission error from their editor or tool. The CI scope-check Action also flags scope violations in PRs as a backstop.
 
 ---
 

@@ -5,6 +5,7 @@ const { execSync } = require('child_process');
 const config = require('../lib/config');
 const github = require('../lib/github');
 const { validate } = require('../lib/planSchema');
+const { clearScope } = require('../lib/permissions');
 
 function rl() {
   return readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -118,7 +119,6 @@ async function getAssignments(plan, octokit, owner, repo, authUsername, autoMode
     collaborators = null;
   }
 
-  // If plan tasks already have assignedTo set, use those
   const preAssigned = plan.tasks.length > 0 && plan.tasks.every(t => t.assignedTo);
   let assignments = {};
 
@@ -129,7 +129,6 @@ async function getAssignments(plan, octokit, owner, repo, authUsername, autoMode
     if (ok.toLowerCase() !== 'n') return assignments;
   }
 
-  // Auto-distribute once
   if (collaborators && collaborators.length > 0) {
     let idx = 0;
     for (const task of plan.tasks) {
@@ -140,15 +139,12 @@ async function getAssignments(plan, octokit, owner, repo, authUsername, autoMode
     for (const task of plan.tasks) assignments[task.id] = authUsername;
   }
 
-  // In --auto mode, skip interactive reassignment but still show approval prompt
   if (autoMode) {
     printAssignmentsSummary(plan, assignments);
     const ok = await ask('\nApprove these assignments? (Y/n): ');
     if (ok.toLowerCase() !== 'n') return assignments;
-    // If not approved, fall through to full interactive menu
   }
 
-  // Interactive numbered menu
   while (true) {
     printNumberedMenu(plan, collaborators, assignments);
     const input = await ask('\nReassign (e.g. "1=b" or "1,3=b" or "all=a"), or Enter to approve: ');
@@ -160,86 +156,168 @@ async function getAssignments(plan, octokit, owner, repo, authUsername, autoMode
   }
 }
 
-async function createIssues(plan, assignments, octokit, owner, repo) {
-  const issues = {};
-  const taskIds = plan.tasks.map(t => t.id);
-
-  for (const task of plan.tasks) {
-    const bodyParts = [
-      `## Description\n${task.description}`,
-      `## Scope\n${task.scope.map(s => `- \`${s}\``).join('\n')}`,
-      `## Acceptance Criteria\n${task.acceptanceCriteria.map(a => `- [ ] ${a}`).join('\n')}`,
-    ];
-
-    if (task.dependencies.length > 0) {
-      bodyParts.push(`## Dependencies\nDepends on: ${task.dependencies.join(', ')}`);
-    }
-
-    const assignee = assignments[task.id] || undefined;
-
-    try {
-      const { data: issue } = await octokit.issues.create({
+async function fetchExistingIssues(octokit, owner, repo) {
+  const existing = {};
+  try {
+    let page = 1;
+    while (true) {
+      const { data } = await octokit.issues.listForRepo({
         owner,
         repo,
-        title: `[${task.id}] ${task.title}`,
-        body: bodyParts.join('\n\n'),
-        assignee: assignee || undefined,
-        labels: ['plansync-task'],
+        labels: 'plansync-task',
+        state: 'all',
+        per_page: 100,
+        page,
       });
-      issues[task.id] = issue.number;
-      console.log('  Created issue #%d for %s', issue.number, task.id);
-
-      // Link dependencies in issue body
-      for (const dep of task.dependencies) {
-        if (issues[dep]) {
-          await octokit.issues.createComment({
-            owner,
-            repo,
-            issue_number: issue.number,
-            body: `Depends on: #${issues[dep]}`,
-          });
+      if (data.length === 0) break;
+      for (const issue of data) {
+        const match = issue.title.match(/^\[(T\d+)\]/);
+        if (match) {
+          existing[match[1]] = { number: issue.number, state: issue.state, assignee: issue.assignee?.login };
         }
       }
-    } catch (err) {
-      // If assignee is invalid (not a collaborator), retry without assignee
-      if (err.status === 422 && assignee) {
-        console.log('  Could not assign @%s (not a collaborator). Creating issue without assignee...', assignee);
-        try {
-          const { data: issue } = await octokit.issues.create({
+      if (data.length < 100) break;
+      page++;
+    }
+  } catch {
+  }
+  return existing;
+}
+
+function buildIssueBody(task) {
+  const bodyParts = [
+    `## Description\n${task.description}`,
+    `## Scope\n${task.scope.map(s => `- \`${s}\``).join('\n')}`,
+    `## Acceptance Criteria\n${task.acceptanceCriteria.map(a => `- [ ] ${a}`).join('\n')}`,
+  ];
+  if (task.dependencies.length > 0) {
+    bodyParts.push(`## Dependencies\nDepends on: ${task.dependencies.join(', ')}`);
+  }
+  return bodyParts.join('\n\n');
+}
+
+async function createOrUpdateIssues(plan, assignments, octokit, owner, repo, updateMode) {
+  const issues = {};
+  let existingIssues = {};
+
+  if (updateMode) {
+    console.log('  Fetching existing issues for update...');
+    existingIssues = await fetchExistingIssues(octokit, owner, repo);
+  }
+
+  for (const task of plan.tasks) {
+    const body = buildIssueBody(task);
+    const assignee = assignments[task.id] || undefined;
+
+    if (updateMode && existingIssues[task.id]) {
+      const existing = existingIssues[task.id];
+      try {
+        await octokit.issues.update({
+          owner,
+          repo,
+          issue_number: existing.number,
+          body,
+          assignee: assignee || undefined,
+        });
+        if (existing.state === 'closed') {
+          await octokit.issues.update({
             owner,
             repo,
-            title: `[${task.id}] ${task.title}`,
-            body: bodyParts.join('\n\n'),
-            labels: ['plansync-task'],
+            issue_number: existing.number,
+            state: 'open',
           });
-          issues[task.id] = issue.number;
-          console.log('  Created issue #%d for %s (unassigned)', issue.number, task.id);
+        }
+        issues[task.id] = existing.number;
+        console.log('  Updated issue #%d for %s', existing.number, task.id);
+      } catch (err) {
+        console.error('  Failed to update issue for %s: %s', task.id, err.message);
+      }
+    } else {
+      try {
+        const { data: issue } = await octokit.issues.create({
+          owner,
+          repo,
+          title: `[${task.id}] ${task.title}`,
+          body,
+          assignee: assignee || undefined,
+          labels: ['plansync-task'],
+        });
+        issues[task.id] = issue.number;
+        console.log('  Created issue #%d for %s', issue.number, task.id);
 
-          // Add comment noting the intended assignee
-          if (assignee) {
+        for (const dep of task.dependencies) {
+          if (issues[dep]) {
             await octokit.issues.createComment({
               owner,
               repo,
               issue_number: issue.number,
-              body: `Intended assignee: @${assignee} (not a collaborator at creation time). Please invite them or reassign.`,
+              body: `Depends on: #${issues[dep]}`,
             });
           }
+        }
+      } catch (err) {
+        if (err.status === 422 && assignee) {
+          console.log('  Could not assign @%s (not a collaborator). Creating issue without assignee...', assignee);
+          try {
+            const { data: issue } = await octokit.issues.create({
+              owner,
+              repo,
+              title: `[${task.id}] ${task.title}`,
+              body,
+              labels: ['plansync-task'],
+            });
+            issues[task.id] = issue.number;
+            console.log('  Created issue #%d for %s (unassigned)', issue.number, task.id);
 
-          for (const dep of task.dependencies) {
-            if (issues[dep]) {
+            if (assignee) {
               await octokit.issues.createComment({
                 owner,
                 repo,
                 issue_number: issue.number,
-                body: `Depends on: #${issues[dep]}`,
+                body: `Intended assignee: @${assignee} (not a collaborator at creation time). Please invite them or reassign.`,
               });
             }
+
+            for (const dep of task.dependencies) {
+              if (issues[dep]) {
+                await octokit.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: issue.number,
+                  body: `Depends on: #${issues[dep]}`,
+                });
+              }
+            }
+          } catch (retryErr) {
+            console.error('  Failed to create issue for %s: %s', task.id, retryErr.message);
           }
-        } catch (retryErr) {
-          console.error('  Failed to create issue for %s: %s', task.id, retryErr.message);
+        } else {
+          console.error('  Failed to create issue for %s: %s', task.id, err.message);
         }
-      } else {
-        console.error('  Failed to create issue for %s: %s', task.id, err.message);
+      }
+    }
+  }
+
+  if (updateMode) {
+    for (const [taskId, existing] of Object.entries(existingIssues)) {
+      if (!plan.tasks.find(t => t.id === taskId) && existing.state === 'open') {
+        try {
+          await octokit.issues.update({
+            owner,
+            repo,
+            issue_number: existing.number,
+            state: 'closed',
+          });
+          await octokit.issues.createComment({
+            owner,
+            repo,
+            issue_number: existing.number,
+            body: 'Task removed from plan during re-delegate.',
+          });
+          console.log('  Closed issue #%d for removed task %s', existing.number, taskId);
+        } catch (err) {
+          console.error('  Failed to close removed issue #%d: %s', existing.number, err.message);
+        }
       }
     }
   }
@@ -279,7 +357,6 @@ async function createProjectBoard(plan, assignments, issues, octokit, owner, rep
     const projectNumber = createResult.createProjectV2.projectV2.number;
     console.log('  Created project #%d: %s', projectNumber, projectName);
 
-    // Add items (issues) to the project
     for (const [taskId, issueNumber] of Object.entries(issues)) {
       const addItemMutation = `
         mutation($input: AddProjectV2ItemByIdInput!) {
@@ -332,7 +409,7 @@ function writeScopeManifests(root, plan, assignments) {
 
     const manifestPath = path.join(scopesDir, `${task.id}.json`);
     fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-    console.log('  Wrote %s', manifestPath.replace(root, ''));
+    console.log('  Wrote %s', path.relative(root, manifestPath));
   }
 }
 
@@ -381,7 +458,6 @@ function writeProjectPlan(root, plan, assignments, issues) {
 }
 
 function writePlanAssignments(root, plan, assignments) {
-  // Write the final assignments back to plan.json so sync can read them
   const planPath = path.join(root, '.plansync', 'plan.json');
   for (const task of plan.tasks) {
     task.assignedTo = assignments[task.id] || '';
@@ -398,7 +474,6 @@ function commitAndPush(root, message, usePr) {
     try {
       execSync('git rm --cached --ignore-unmatch .plansync/config.json', { cwd: root, stdio: 'pipe' });
     } catch {
-      // Not tracked — nothing to untrack
     }
     execSync(`git commit -m "${message.replace(/"/g, '\\"')}"`, { cwd: root, stdio: 'pipe' });
     console.log('  Committed.');
@@ -418,7 +493,7 @@ function commitAndPush(root, message, usePr) {
   }
 }
 
-async function delegate(autoMode) {
+async function delegate(autoMode, updateMode) {
   const root = config.findRoot();
   const cfg = config.read(root);
 
@@ -454,30 +529,63 @@ async function delegate(autoMode) {
     authUsername = owner;
   }
 
+  // Fix D: Owner-only guard — check if user is admin
+  try {
+    const { data: repoData } = await octokit.repos.get({ owner, repo });
+    if (!repoData.permissions || !repoData.permissions.admin) {
+      console.error('\nOnly the repository admin can delegate plans.');
+      console.error('Current user: %s — ask the repo owner to run delegate.', authUsername);
+      process.exit(1);
+    }
+  } catch (err) {
+    console.log('  Could not verify admin status — proceeding anyway.');
+  }
+
   // Get assignments
   const assignments = await getAssignments(plan, octokit, owner, repo, authUsername, autoMode);
 
-  // Create GitHub Issues
-  console.log('\nCreating GitHub Issues...');
-  const issues = await createIssues(plan, assignments, octokit, owner, repo);
+  // Create or update GitHub Issues
+  console.log(updateMode ? '\nUpdating GitHub Issues...' : '\nCreating GitHub Issues...');
+  const issues = await createOrUpdateIssues(plan, assignments, octokit, owner, repo, updateMode);
 
   // Create Project board
   await createProjectBoard(plan, assignments, issues, octokit, owner, repo);
 
-  // Write scope manifests
+  // Fix B: Write assignments to plan.json FIRST (before any file writes)
+  console.log('\nSaving assignments to plan.json...');
+  try {
+    writePlanAssignments(root, plan, assignments);
+  } catch (err) {
+    console.error('  WARNING: Could not save assignments: %s', err.message);
+  }
+
+  // Fix A: Reset read-only files before writing
+  console.log('\nResetting file permissions...');
+  try {
+    const result = clearScope(root);
+    console.log('  Reset %d files to writable.', result.reset);
+  } catch (err) {
+    console.log('  Could not reset permissions: %s', err.message);
+  }
+
+  // Fix C: Wrap each file write in try/catch
   console.log('\nWriting scope manifests...');
-  writeScopeManifests(root, plan, assignments);
+  try {
+    writeScopeManifests(root, plan, assignments);
+  } catch (err) {
+    console.error('  Warning: could not write scope manifests: %s', err.message);
+  }
 
-  // Write PROJECT_PLAN.md
   console.log('\nWriting PROJECT_PLAN.md...');
-  writeProjectPlan(root, plan, assignments, issues);
-
-  // Write assignments back to plan.json
-  console.log('\nUpdating plan.json with assignments...');
-  writePlanAssignments(root, plan, assignments);
+  try {
+    writeProjectPlan(root, plan, assignments, issues);
+  } catch (err) {
+    console.error('  Warning: could not write PROJECT_PLAN.md: %s', err.message);
+    console.error('  Run "plansync sync --reset" to restore file permissions and try again.');
+  }
 
   // Commit and push
-  commitAndPush(root, `plansync: delegate plan — ${plan.title}`, false);
+  commitAndPush(root, `plansync: ${updateMode ? 'update' : 'delegate'} plan — ${plan.title}`, false);
 
   console.log('\nDone! Plan delegated to %s/%s.', owner, repo);
   console.log('Collaborators: run `plansync sync --user <username>` to generate context files and apply scope permissions.');

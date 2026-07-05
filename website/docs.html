@@ -94,8 +94,8 @@
         </div>
         <p>To use a PAT instead of the browser flow, paste the token at the prompt. The token needs <code>repo</code> and <code>project</code> scopes. Generate one at <a href="https://github.com/settings/tokens/new">github.com/settings/tokens/new</a>.</p>
 
-        <h3 id="cmd-delegate"><code>plansync delegate [--auto]</code></h3>
-        <p>Reads <code>.plansync/plan.json</code> (written by your agent) and pushes it to GitHub as Issues, a Project v2 board, and scope manifests. Auto-distributes tasks round-robin to repo collaborators. Shows a numbered reassignment menu so you can move tasks between collaborators quickly before approving.</p>
+        <h3 id="cmd-delegate"><code>plansync delegate [--auto] [--update]</code></h3>
+        <p>Reads <code>.plansync/plan.json</code> (written by your agent) and pushes it to GitHub as Issues, a Project v2 board, and scope manifests. Auto-distributes tasks round-robin to repo collaborators. Shows a numbered reassignment menu so you can move tasks between collaborators quickly before approving. Only repository admins (owners) can run this command.</p>
         <div class="code-block">
           <pre><code><span class="prompt">$</span> plansync delegate
 
@@ -116,6 +116,19 @@
 <span class="comment">  ✓ Committing and pushing...</span></code></pre>
         </div>
         <p>Use <code>--auto</code> to skip the reassignment menu entirely and use round-robin defaults (the approval prompt is still shown). If a username is not a repo collaborator, the issue is created unassigned with a comment noting the intended assignee.</p>
+        
+        <h4>Updating existing plans</h4>
+        <p>When you modify the plan after delegation, use <code>--update</code> to intelligently update GitHub:</p>
+        <div class="code-block">
+          <pre><code><span class="prompt">$</span> plansync delegate --update
+
+<span class="comment">  Fetching existing Issues...</span>
+<span class="comment">  ✓ Updated Issue #1 (T001: Set up auth)</span>
+<span class="comment">  ✓ Created Issue #4 (T004: Write tests)</span>
+<span class="comment">  ✓ Closed Issue #2 (T002: removed from plan)</span>
+<span class="comment">  ✓ Committing and pushing...</span></code></pre>
+        </div>
+        <p>New tasks create new Issues, changed tasks update existing Issues, and removed tasks close their Issues with a comment explaining the removal.</p>
 
         <h3 id="cmd-status"><code>plansync status</code></h3>
         <p>Prints the plan alongside live GitHub Issue states. Shows each task's status (ready / in progress / done / blocked), assigned user, scope globs, Issue number, and blocking dependency chains. Ends with a summary count.</p>
@@ -129,7 +142,7 @@
   Summary: 3 total · 2 ready · 1 blocked · 0 in progress · 0 done</span></code></pre>
         </div>
 
-        <h3 id="cmd-sync"><code>plansync sync [--user &lt;name&gt;]</code></h3>
+        <h3 id="cmd-sync"><code>plansync sync [--user &lt;name&gt;] [--supervisor]</code></h3>
         <p>Locks filesystem permissions to a collaborator's assigned scope. Files matching the user's task scopes become writable (<code>chmod 644</code>); everything else becomes read-only (<code>chmod 444</code>). Prevents accidental edits outside your scope. Also generates per-user context files at <code>.plansync/context/&lt;username&gt;/</code> containing only the current user's assigned tasks. Username is resolved via <code>--user</code> flag, <code>PLANSYNC_USER</code> env var, or auto-detected from the GitHub token. Use <code>--reset</code> to restore all files to writable.</p>
         <div class="code-block">
           <pre><code><span class="prompt">$</span> plansync sync --user janedoe
@@ -149,6 +162,17 @@
 <span class="comment">  ✓ All files restored to writable</span></code></pre>
         </div>
         <p>Skips <code>.git/</code>, <code>node_modules/</code>, and <code>.plansync/</code> directories automatically. The CI scope-check Action serves as the real backstop; local permissions are an opt-in convenience.</p>
+        
+        <h4>Supervisor mode for project owners</h4>
+        <p>Use <code>--supervisor</code> to keep all files writable while still generating context files. This is useful when you're the project owner and want to oversee all tasks without scope restrictions:</p>
+        <div class="code-block">
+          <pre><code><span class="prompt">$</span> plansync sync --supervisor
+
+<span class="comment">  ✓ All files remain writable (supervisor mode)</span>
+<span class="comment">  ✓ Generated context files for howards254</span>
+<span class="comment">  ✓ Context files written to .plansync/context/howards254/</span></code></pre>
+        </div>
+        <p>Supervisor mode is ideal for project owners who need to review all work, make cross-cutting changes, or coordinate between multiple collaborators.</p>
 
         <h3 id="cmd-plan"><code>plansync plan &lt;description&gt;</code></h3>
         <p>Optionally uses an LLM to draft a plan. Sends your project description to Claude (requires <code>ANTHROPIC_API_KEY</code>) and returns a structured plan with tasks, scopes, dependencies, and acceptance criteria. Supports an interactive review loop — approve, edit with feedback to regenerate, or cancel. Saves the result to <code>.plansync/plan.json</code>.</p>

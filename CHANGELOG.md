@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.3 — 2026-07-03
+
+- **Fix: delegate crash on read-only files** — delegate now resets file permissions before writing, preventing EACCES errors when PROJECT_PLAN.md is read-only from a previous sync
+- **Fix: plan.json not updated on crash** — assignments are now written to plan.json before any file writes, ensuring sync always finds correct assignments even if delegate crashes later
+- **Fix: resilient file writes** — all file writes in delegate are wrapped in try/catch, so one failure doesn't crash the entire delegation
+- **Owner-only guard** — `plansync delegate` now checks if the current user is a repo admin before allowing delegation. Collaborators cannot accidentally overwrite the plan.
+- **--update flag** — `plansync delegate --update` intelligently updates existing Issues instead of creating duplicates. New tasks create new Issues, changed tasks update existing Issues, removed tasks close their Issues with a comment.
+- **--supervisor flag** — `plansync sync --supervisor` keeps all files writable while still generating context files. Ideal for project owners who need to oversee all tasks without scope restrictions.
+- **Improved scope manifest paths** — fixed path display in delegate output to use relative paths instead of absolute paths
+
 ## 0.3.2 — 2026-07-03
 
 - **Windows compatibility** — browser opening now supports `start` (Windows) alongside `open` (macOS) and `xdg-open` (Linux)

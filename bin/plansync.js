@@ -40,8 +40,9 @@ program
   .command('delegate')
   .description('Write the approved plan to GitHub Issues and Projects')
   .option('--auto', 'Skip interactive reassignment, use round-robin defaults (still shows approval prompt)')
+  .option('--update', 'Update existing issues instead of creating duplicates (re-delegate)')
   .action((opts) => {
-    delegateCmd(opts.auto || false).catch(err => {
+    delegateCmd(opts.auto || false, opts.update || false).catch(err => {
       console.error(err.message);
       process.exit(1);
     });
@@ -62,9 +63,11 @@ program
   .description('Recompute and reapply read-only file permissions for your assigned scope')
   .option('--user <username>', 'GitHub username (auto-detected if omitted)')
   .option('--reset', 'Reset all files to writable (undo previous sync)')
+  .option('--supervisor', 'Supervisor mode: keep all files writable, only generate context files')
   .action((opts) => {
     if (opts.user) process.env.PLANSYNC_USER = opts.user;
     if (opts.reset) process.env.PLANSYNC_RESET = '1';
+    if (opts.supervisor) process.env.PLANSYNC_SUPERVISOR = '1';
     syncCmd().catch(err => {
       console.error(err.message);
       process.exit(1);
