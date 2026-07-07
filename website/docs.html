@@ -143,36 +143,53 @@
         </div>
 
         <h3 id="cmd-sync"><code>plansync sync [--user &lt;name&gt;] [--supervisor]</code></h3>
-        <p>Locks filesystem permissions to a collaborator's assigned scope. Files matching the user's task scopes become writable (<code>chmod 644</code>); everything else becomes read-only (<code>chmod 444</code>). Prevents accidental edits outside your scope. Also generates per-user context files at <code>.plansync/context/&lt;username&gt;/</code> containing only the current user's assigned tasks. Username is resolved via <code>--user</code> flag, <code>PLANSYNC_USER</code> env var, or auto-detected from the GitHub token. Use <code>--reset</code> to restore all files to writable.</p>
+        <p>PlanSync auto-detects whether you're the repo admin or a collaborator, and generates the right context for your role. Username is resolved via <code>--user</code> flag, <code>PLANSYNC_USER</code> env var, or auto-detected from the GitHub token.</p>
+        
+        <h4>As a collaborator</h4>
+        <p>Locks filesystem permissions to your assigned scope. Files matching your task scopes become writable (<code>chmod 644</code>); everything else becomes read-only (<code>chmod 444</code>). Also writes per-user context files to root and <code>.plansync/context/&lt;username&gt;/</code>.</p>
         <div class="code-block">
           <pre><code><span class="prompt">$</span> plansync sync --user janedoe
 
 <span class="comment">  ✓ Set writable: src/pages/index.html</span>
 <span class="comment">  ✓ Set writable: src/pages/about.html</span>
-<span class="comment">  ✓ Set writable: src/pages/style.css</span>
 <span class="comment">  ✓ Set read-only: src/auth/login.js</span>
 <span class="comment">  ✓ Set read-only: src/api/routes.js</span>
-<span class="comment">  ✓ Set read-only: backend/server.js</span>
 <span class="comment">  Permission Summary: (2 writable, 3 readonly)</span>
 
 <span class="comment">  Generating context files for janedoe...</span>
 <span class="comment">  Wrote 7 context file(s) to .plansync/context/janedoe/</span>
-
-<span class="prompt">$</span> plansync sync --reset
-<span class="comment">  ✓ All files restored to writable</span></code></pre>
+<span class="comment">  Your agent will read these tasks from AGENTS.md at the project root.</span></code></pre>
         </div>
-        <p>Skips <code>.git/</code>, <code>node_modules/</code>, and <code>.plansync/</code> directories automatically. The CI scope-check Action serves as the real backstop; local permissions are an opt-in convenience.</p>
-        
-        <h4>Supervisor mode for project owners</h4>
-        <p>Use <code>--supervisor</code> to keep all files writable while still generating context files. This is useful when you're the project owner and want to oversee all tasks without scope restrictions:</p>
+
+        <h4>As the admin (auto-detected)</h4>
+        <p>PlanSync detects you're the repo admin and writes a rich context to root <code>AGENTS.md</code> that includes: planning instructions, your assigned tasks, AND an all-tasks overview table showing every collaborator's assignments. All files remain writable — no scope restrictions for the admin.</p>
+        <div class="code-block">
+          <pre><code><span class="prompt">$</span> plansync sync
+
+<span class="comment">  Admin detected — keeping all files writable for Howards254.</span>
+<span class="comment">  Reset 13 files to writable (0o644).</span>
+
+<span class="comment">  Generating context files for Howards254...</span>
+<span class="comment">  Wrote admin context to root AGENTS.md</span>
+<span class="comment">  Includes: planning instructions, 5 assigned task(s), and all-tasks overview table</span></code></pre>
+        </div>
+        <p>Your agent reads root <code>AGENTS.md</code> and sees: your own tasks, what every other collaborator is working on (overview table), and planning instructions for when you want to update the plan.</p>
+
+        <h4>Explicit supervisor mode</h4>
+        <p>Use <code>--supervisor</code> when you want the minimal view — context files go only to <code>.plansync/context/&lt;username&gt;/</code>, root files are untouched (planning instructions preserved).</p>
         <div class="code-block">
           <pre><code><span class="prompt">$</span> plansync sync --supervisor
 
-<span class="comment">  ✓ All files remain writable (supervisor mode)</span>
-<span class="comment">  ✓ Generated context files for howards254</span>
-<span class="comment">  ✓ Context files written to .plansync/context/howards254/</span></code></pre>
+<span class="comment">  Supervisor mode: keeping all files writable for Howards254.</span>
+<span class="comment">  Wrote 7 context file(s) to .plansync/context/Howards254/ (root untouched)</span></code></pre>
         </div>
-        <p>Supervisor mode is ideal for project owners who need to review all work, make cross-cutting changes, or coordinate between multiple collaborators.</p>
+
+        <h4>Reset all permissions</h4>
+        <div class="code-block">
+          <pre><code><span class="prompt">$</span> plansync sync --reset
+<span class="comment">  ✓ All files restored to writable</span></code></pre>
+        </div>
+        <p>Skips <code>.git/</code>, <code>node_modules/</code>, and <code>.plansync/</code> directories automatically. The CI scope-check Action serves as the real backstop; local permissions are an opt-in convenience.</p>
 
         <h3 id="cmd-plan"><code>plansync plan &lt;description&gt;</code></h3>
         <p>Optionally uses an LLM to draft a plan. Sends your project description to Claude (requires <code>ANTHROPIC_API_KEY</code>) and returns a structured plan with tasks, scopes, dependencies, and acceptance criteria. Supports an interactive review loop — approve, edit with feedback to regenerate, or cancel. Saves the result to <code>.plansync/plan.json</code>.</p>

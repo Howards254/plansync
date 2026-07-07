@@ -87,7 +87,7 @@
               <li><strong>plansync init</strong> — authenticate, scaffold workflows, write <code>AGENTS.md</code></li>
               <li><strong>Agent plans the work</strong> — your coding agent reads <code>AGENTS.md</code> and writes <code>.plansync/plan.json</code></li>
               <li><strong>plansync delegate</strong> — Issues, Project board, scope manifests, commit</li>
-              <li><strong>plansync sync</strong> — locks scope permissions + generates per-user context files</li>
+              <li><strong>plansync sync</strong> — locks scope permissions + generates per-user context files at project root (auto-discovered by all AI agents)</li>
             </ol>
           </div>
           <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px;">
@@ -98,7 +98,7 @@
               <li><strong>plansync init</strong> — re-authenticate, adds <code>.plansync/config.json</code> to <code>.gitignore</code></li>
               <li><strong>Agent plans the refactor</strong> — describe the next milestone to your agent</li>
               <li><strong>plansync delegate</strong> — same as new project</li>
-              <li><strong>plansync sync</strong> — locks scope + generates per-user context files at <code>.plansync/context/&lt;name&gt;/</code></li>
+              <li><strong>plansync sync</strong> — locks scope + generates per-user context files at project root (e.g. <code>AGENTS.md</code>) + <code>.plansync/context/&lt;name&gt;/</code></li>
               <li><strong>plansync clean</strong> — undo everything if you change your mind</li>
             </ol>
           </div>
@@ -124,9 +124,9 @@
             <td>Prints the plan with live GitHub Issue states. Shows task status, assignee, scope globs, blocking dependency chains, and a summary count.</td>
           </tr>
           <tr>
-            <td><code>plansync sync [--user &lt;name&gt;] [--supervisor]</code></td>
-            <td><strong>Collaborator joining</strong> the project</td>
-            <td>Makes assigned files writable (<code>chmod 644</code>) and everything else read-only (<code>chmod 444</code>). Also generates per-user context files at <code>.plansync/context/&lt;name&gt;/</code> containing only your assigned tasks. Uses <code>--user</code> flag, <code>PLANSYNC_USER</code> env var, or auto-detects from GitHub. Use <code>--supervisor</code> to keep all files writable (for project owners). Use <code>--reset</code> to restore all files to writable.</td>
+            <td><code>plansync sync [--user &lt;name&gt;] [--supervisor] [--reset]</code></td>
+            <td><strong>Set up your environment</strong> after delegation</td>
+            <td>Auto-detects if you're the repo admin via GitHub API. <strong>Admins:</strong> all files stay writable; root <code>AGENTS.md</code> gets planning instructions, assigned tasks, and an all-tasks overview table. <strong>Collaborators:</strong> assigned files become writable (<code>chmod 644</code>), everything else read-only (<code>chmod 444</code>). Per-user context files are written to the <strong>project root</strong> (e.g. <code>AGENTS.md</code>, <code>CLAUDE.md</code>, <code>.cursorrules</code>) for agent auto-discovery, plus <code>.plansync/context/&lt;name&gt;/</code> as a backup. Use <code>--user</code> flag, <code>PLANSYNC_USER</code> env var, or auto-detects from GitHub. Use <code>--supervisor</code> to keep all files writable. Use <code>--reset</code> to restore all files to writable.</td>
           </tr>
           <tr>
             <td><code>plansync plan &lt;desc&gt;</code></td>
@@ -166,7 +166,12 @@
 
 <span class="prompt">$</span> plansync sync --user janedoe
 <span class="comment">  # Only src/pages/** is writable for janedoe</span>
-<span class="comment">  # Context files generated at .plansync/context/janedoe/</span></code></pre>
+<span class="comment">  # Context files written to root (AGENTS.md, CLAUDE.md, .cursorrules, ...)</span>
+<span class="comment">  # Backup copy at .plansync/context/janedoe/</span>
+
+<span class="prompt">$</span> plansync sync
+<span class="comment">  # Admin detected — all files stay writable</span>
+<span class="comment">  # Root AGENTS.md gets planning instructions + all-tasks overview</span></code></pre>
         </div>
 
         <h2 id="updating-plans">Updating plans after delegation</h2>

@@ -2,7 +2,6 @@
 
 [![npm version](https://img.shields.io/npm/v/plansync)](https://www.npmjs.com/package/plansync)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Tests](https://github.com/howards254/plansync/actions/workflows/scope-check.yml/badge.svg)](https://github.com/howards254/plansync/actions)
 
 **Coordination and accountability layer for AI-assisted development teams.**
 

@@ -120,7 +120,7 @@
             <ol style="padding-left:20px; display:flex; flex-direction:column; gap:12px;">
               <li><strong>Create your repo</strong> on GitHub and <code>git push</code> to it</li>
               <li><strong>Tell your agent</strong> to read <code>AGENTS.md</code> and write a plan to <code>.plansync/plan.json</code></li>
-              <li>Run <strong><code>plansync delegate</code></strong> — pushes Issues, board, scope files to GitHub, commits, and pushes</li>
+              <li>Run <strong><code>plansync delegate [--auto]</code></strong> — pushes Issues, board, scope files to GitHub, commits, and pushes. Use <code>--auto</code> to skip interactive reassignment and round-robin tasks</li>
               <li>Each collaborator runs <strong><code>plansync sync</code></strong> to lock scope + get per-user context files</li>
             </ol>
           </div>
@@ -128,7 +128,7 @@
             <h3 style="margin-bottom:8px;">Adopting an existing project</h3>
             <ol style="padding-left:20px; display:flex; flex-direction:column; gap:12px;">
               <li><strong>Describe the next milestone</strong> to your agent — it will write a plan to <code>.plansync/plan.json</code></li>
-              <li>Run <strong><code>plansync delegate</code></strong> — same as new project: Issues, board, scope files</li>
+              <li>Run <strong><code>plansync delegate [--auto]</code></strong> — same as new project: Issues, board, scope files. Use <code>--auto</code> to skip reassignment</li>
               <li>Each collaborator runs <strong><code>plansync sync</code></strong> to lock scope + get per-user context files</li>
               <li>Change your mind? Run <strong><code>plansync clean</code></strong> to undo everything</li>
             </ol>
