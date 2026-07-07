@@ -72,8 +72,9 @@ plansync delegate
 
 # 4. Lock scope permissions and get your task context
 plansync sync
-# Only your assigned files are writable
-# Context files generated at .plansync/context/<username>/
+# Admin auto-detect: admins get full write + overview table
+# Collaborators: only assigned files writable
+# Context files at project root (AGENTS.md, CLAUDE.md, ...) + .plansync/context/<username>/
 ```
 
 ### Adopting an existing project
@@ -90,7 +91,9 @@ plansync init
 # 3. Push to GitHub
 plansync delegate
 
-# 4. Lock scope
+# 4. Lock scope and get context files
+plansync sync
+# Or for a specific collaborator:
 plansync sync --user your-username
 
 # Undo later with:
@@ -105,11 +108,11 @@ See the full walkthrough at **[plansync.freedev.app/workflow.html](https://plans
 
 PlanSync operates in four layers:
 
-1. **Plan generation** — After `plansync init` writes `AGENTS.md`, your coding agent reads it and writes `.plansync/plan.json` with tasks, file-scope globs, dependencies, and acceptance criteria. The `plansync plan` command (requires `ANTHROPIC_API_KEY`) can also draft a plan via LLM, but this is entirely optional — your agent can write the plan directly.
+1. **Plan generation** — After `plansync init` writes `AGENTS.md`, your coding agent reads it and writes `.plansync/plan.json` with tasks, file-scope globs, dependencies, and acceptance criteria.
 
 2. **GitHub synchronization** — `plansync delegate` reads the plan and creates GitHub Issues (one per task), a Project v2 board, and scope manifests in `.plansync/scopes/`. A numbered reassignment menu lets you quickly move tasks to specific collaborators using inputs like `"1=b"`, `"1,3=b"`, or `"all=a"`. Use `--auto` to skip reassignment but still approve. On approval, assignments are written back to `.plansync/plan.json` for downstream use. If a username is not a collaborator, the issue is created unassigned with a note.
 
-3. **Scope enforcement** — `plansync sync` walks the repo and sets `chmod 644` (writable) on files matching your assigned scopes and `chmod 444` (read-only) on everything else. Your editor, Claude Code, Cursor, or any tool hits `EACCES` if it tries to write outside your scope. Skips `.git/`, `node_modules/`, and `.plansync/`. Use `--reset` to restore all files to writable. Sync also generates per-user context files at `.plansync/context/<username>/` containing only your assigned tasks.
+3. **Scope enforcement** — `plansync sync` walks the repo and sets `chmod 644` (writable) on files matching your assigned scopes and `chmod 444` (read-only) on everything else. Your editor, Claude Code, Cursor, or any tool hits `EACCES` if it tries to write outside your scope. Skips `.git/`, `node_modules/`, and `.plansync/`. Use `--reset` to restore all files to writable. Sync also generates per-user context files to the **project root** (for agent auto-discovery) plus `.plansync/context/<username>/` as a backup.
 
 4. **CI monitoring** — A GitHub Action (`scope-check.yml`) checks every PR for scope violations. A scheduled action (`silence-detection.yml`) flags stalled tasks. The CI action is the real backstop; local permissions are an opt-in convenience.
 
@@ -122,8 +125,8 @@ PlanSync operates in four layers:
 | `plansync init` | Authenticate with GitHub, scaffold CI workflows and post-merge hook, write `AGENTS.md`, gitignore credentials |
 | `plansync delegate [--auto] [--update]` | Read `.plansync/plan.json` → numbered reassignment menu → create Issues, Project board, scope manifests → commit and push. Only repo admins can delegate. |
 | `plansync status` | Print plan with live GitHub Issue states, blocking chains, summary counts |
-| `plansync sync [--user <name>] [--reset] [--supervisor]` | Lock filesystem permissions + generate per-user context files at `.plansync/context/<name>/` |
-| `plansync plan <description>` | (Optional) Draft a plan via LLM — requires `ANTHROPIC_API_KEY` |
+| `plansync sync [--user <name>] [--reset] [--supervisor]` | Lock filesystem permissions + generate per-user context files at project root (agent auto-discovery) + `.plansync/context/<name>/` |
+| `plansync plan <description>` | (Optional) Draft a plan via LLM — requires an API key |
 | `plansync clean` | Remove all PlanSync traces from the project |
 
 Use `--help` on any command for full options.
@@ -217,11 +220,11 @@ PlanSync generates per-user context files when you run `plansync sync`. Each set
 | `GEMINI.md` | Google Gemini CLI |
 | `.continue/rules/00-plansync.md` | Continue.dev |
 
-Files are written to `.plansync/context/<username>/` and contain `<!-- plansync -->` / `<!-- end-plansync -->` markers. This directory is gitignored so each team member gets their own view of tasks.
+Files are written to the **project root** (e.g. `AGENTS.md`, `CLAUDE.md`, `.cursorrules`) for agent auto-discovery, plus `.plansync/context/<username>/` as a backup. Root files are gitignored so each team member gets their own view. All context files use `<!-- plansync -->` / `<!-- end-plansync -->` markers so your custom content is preserved.
 
-To use: tell your agent to read `.plansync/context/<your-username>/` after running `plansync sync`.
+For **collaborators**: each root file contains only your assigned tasks. Your agent reads root `AGENTS.md` and immediately knows what to work on — no configuration needed.
 
-The root `AGENTS.md` (written by `plansync init`) always contains the project planning instructions for the admin's agent — it is not overwritten by sync.
+For **admins**: root `AGENTS.md` includes planning instructions, your assigned tasks, and an all-tasks overview table showing every collaborator's assignments.
 
 **Adding more agents:** Drop a template file into `.plansync/templates/` and it will be rendered for every user at sync time. The filename becomes the output path (e.g., `.plansync/templates/.my-agent.md.tmpl` → `.plansync/context/<user>/.my-agent.md`). Templates receive `{{username}}`, `{{userTaskCount}}`, `{{taskList}}`, `{{projectTitle}}`, `{{projectDescription}}`, and `{{scopeGlobs}}` variables.
 
@@ -231,13 +234,13 @@ The root `AGENTS.md` (written by `plansync init`) always contains the project pl
 
 **Do collaborators need to install anything?** Yes — `npm install -g plansync` and `plansync sync`. No API keys or GitHub tokens needed.
 
-**Do I need an Anthropic API key?** No. `plansync plan` is optional. Your agent writes `.plansync/plan.json` directly by reading `AGENTS.md`.
+**Do I need an API key?** No. `plansync plan` is optional. Your agent writes `.plansync/plan.json` directly by reading `AGENTS.md`.
 
 **Can I undo everything?** Yes — `plansync clean` removes all traces and restores your repo to its pre-PlanSync state.
 
 **What if I already committed `.plansync/config.json`?** PlanSync's `init` command automatically runs `git rm --cached` to untrack it and adds it to `.gitignore`.
 
-**How does my agent know which task is mine?** After `plansync sync`, your agent's context file is at `.plansync/context/<username>/AGENTS.md`. Tell your agent to read that file. It contains only the tasks assigned to you.
+**How does my agent know which task is mine?** After `plansync sync`, your agent's context is in root `AGENTS.md`. Most agents auto-discover root context files — no configuration needed. It contains only the tasks assigned to you.
 
 **Does this work with any coding agent?** Yes — 28+ agents read `AGENTS.md` natively. PlanSync also generates tool-specific files for Claude Code, Cursor, Copilot, Windsurf, Gemini CLI, and Continue.dev.
 

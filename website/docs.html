@@ -192,12 +192,10 @@
         <p>Skips <code>.git/</code>, <code>node_modules/</code>, and <code>.plansync/</code> directories automatically. The CI scope-check Action serves as the real backstop; local permissions are an opt-in convenience.</p>
 
         <h3 id="cmd-plan"><code>plansync plan &lt;description&gt;</code></h3>
-        <p>Optionally uses an LLM to draft a plan. Sends your project description to Claude (requires <code>ANTHROPIC_API_KEY</code>) and returns a structured plan with tasks, scopes, dependencies, and acceptance criteria. Supports an interactive review loop — approve, edit with feedback to regenerate, or cancel. Saves the result to <code>.plansync/plan.json</code>.</p>
+        <p>Optionally uses an LLM to draft a plan. Sends your project description and returns a structured plan with tasks, scopes, dependencies, and acceptance criteria. Supports an interactive review loop — approve, edit with feedback to regenerate, or cancel. Saves the result to <code>.plansync/plan.json</code>. (Requires an API key set in the environment.)</p>
         <p>This command is entirely optional. You can skip it and have your agent write <code>.plansync/plan.json</code> directly by reading <code>AGENTS.md</code>.</p>
         <div class="code-block">
-          <pre><code><span class="prompt">$</span> export ANTHROPIC_API_KEY=sk-ant-xxxxx
-
-<span class="prompt">$</span> plansync plan "Build a todo app with React frontend and Express backend"
+          <pre><code><span class="prompt">$</span> plansync plan "Build a todo app with React frontend and Express backend"
 
 <span class="comment">  Generating plan...</span>
 <span class="comment">  ┌────────┬──────────────────────┬────────────────────┐</span>

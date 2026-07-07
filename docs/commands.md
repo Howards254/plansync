@@ -37,9 +37,7 @@ plansync plan "Build a REST API with user auth"
 3. You choose: **a**pprove, **e**dit with feedback, **r**egenerate, or **c**ancel
 4. On approval, the plan is saved to `.plansync/plan.json`
 
-**Environment variables:**
-- `ANTHROPIC_API_KEY` (required) — Your Anthropic API key
-- `PLANSYNC_CLAUDE_MODEL` (optional) — Claude model to use (default: `claude-sonnet-4-20250514`)
+**Note:** Requires an API key set in the environment.
 
 ---
 
