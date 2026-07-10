@@ -85,7 +85,7 @@ The command will:
 5. Commit and push everything
 
 Use `--auto` to skip the reassignment menu and use round-robin defaults.
-Use `--update` to re-delegate after modifying the plan (updates existing Issues).
+Re-delegating after plan edits always deduplicates — matching task IDs against existing Issues. No special flag needed.
 
 ## 5. Sync permissions and context
 
@@ -93,7 +93,7 @@ As a collaborator, pull the latest and sync:
 
 ```sh
 git pull
-plansync sync --user your-username
+plansync sync your-username     # or: plansync sync --user your-username
 ```
 
 This:
@@ -144,7 +144,17 @@ T002  ◻ ready    janedoe     #2  open   src/pages/**
 Summary: 2 total · 2 ready · 0 blocked
 ```
 
-## 7. Clean up
+## 7. Check your identity
+
+Verify which GitHub identity is active:
+
+```sh
+plansync whoami
+```
+
+Resolves from `--user` flag, `PLANSYNC_USER` env var, or your GitHub token.
+
+## 8. Clean up
 
 Remove all PlanSync traces:
 

@@ -114,9 +114,9 @@
             <td>Authenticates with GitHub (browser or PAT), saves credentials to <code>.plansync/config.json</code>, copies CI workflows to <code>.github/workflows/</code>, installs a post-merge git hook, writes <code>AGENTS.md</code> with planning instructions for your coding agent, and adds config to <code>.gitignore</code>.</td>
           </tr>
           <tr>
-            <td><code>plansync delegate [--update]</code></td>
+            <td><code>plansync delegate [--auto]</code></td>
             <td><strong>Your plan is ready</strong> — agent has written <code>.plansync/plan.json</code></td>
-            <td>Shows the plan, asks for task assignments (numbered menu: <code>"1=b"</code> or <code>"all=a"</code>), then creates GitHub Issues, a Project v2 board, scope manifests (<code>.plansync/scopes/*.json</code>), and <code>PROJECT_PLAN.md</code>. Commits everything and pushes. Use <code>--auto</code> to skip reassignment and use round-robin defaults. Use <code>--update</code> to re-delegate after modifying the plan — updates existing Issues instead of creating duplicates.</td>
+            <td>Shows the plan, asks for task assignments (numbered menu: <code>"1=b"</code> or <code>"all=a"</code>), then creates GitHub Issues, a Project v2 board, scope manifests (<code>.plansync/scopes/*.json</code>), and <code>PROJECT_PLAN.md</code>. Commits everything and pushes. Use <code>--auto</code> to skip reassignment and use round-robin defaults. Re-running after plan edits always deduplicates automatically — no special flag needed.</td>
           </tr>
           <tr>
             <td><code>plansync status</code></td>
@@ -124,14 +124,19 @@
             <td>Prints the plan with live GitHub Issue states. Shows task status, assignee, scope globs, blocking dependency chains, and a summary count.</td>
           </tr>
           <tr>
-            <td><code>plansync sync [--user &lt;name&gt;] [--supervisor] [--reset]</code></td>
+            <td><code>plansync sync [&lt;username&gt;] [--user &lt;name&gt;] [--supervisor] [--reset]</code></td>
             <td><strong>Set up your environment</strong> after delegation</td>
-            <td>Auto-detects if you're the repo admin via GitHub API. <strong>Admins:</strong> all files stay writable; root <code>AGENTS.md</code> gets planning instructions, assigned tasks, and an all-tasks overview table. <strong>Collaborators:</strong> assigned files become writable (<code>chmod 644</code>), everything else read-only (<code>chmod 444</code>). Per-user context files are written to the <strong>project root</strong> (e.g. <code>AGENTS.md</code>, <code>CLAUDE.md</code>, <code>.cursorrules</code>) for agent auto-discovery, plus <code>.plansync/context/&lt;name&gt;/</code> as a backup. Use <code>--user</code> flag, <code>PLANSYNC_USER</code> env var, or auto-detects from GitHub. Use <code>--supervisor</code> to keep all files writable. Use <code>--reset</code> to restore all files to writable.</td>
+            <td>Auto-detects if you're the repo admin via GitHub API. <strong>Admins:</strong> all files stay writable; root <code>AGENTS.md</code> gets planning instructions, assigned tasks, and an all-tasks overview table. <strong>Collaborators:</strong> assigned files become writable (<code>chmod 644</code>), everything else read-only (<code>chmod 444</code>). Per-user context files are written to the <strong>project root</strong> (e.g. <code>AGENTS.md</code>, <code>CLAUDE.md</code>, <code>.cursorrules</code>) for agent auto-discovery, plus <code>.plansync/context/&lt;name&gt;/</code> as a backup. Username can be passed as a positional argument, via <code>--user</code> flag, <code>PLANSYNC_USER</code> env var, or auto-detected from GitHub. Use <code>--supervisor</code> to keep all files writable. Use <code>--reset</code> to restore all files to writable.</td>
           </tr>
           <tr>
             <td><code>plansync plan &lt;desc&gt;</code></td>
             <td><strong>Optional</strong> — if you want an LLM to help draft the plan</td>
             <td>Sends your project description to an LLM to generate a structured plan. Supports approve, edit with feedback, regenerate, or cancel. Saves to <code>.plansync/plan.json</code>.</td>
+          </tr>
+          <tr>
+            <td><code>plansync whoami</code></td>
+            <td><strong>Verify your identity</strong></td>
+            <td>Prints your GitHub username and role (admin/collaborator). Resolved from <code>--user</code> flag, <code>PLANSYNC_USER</code> env var, or GitHub token. No token needed — works with <code>--user</code> or env var alone.</td>
           </tr>
           <tr>
             <td><code>plansync clean</code></td>
@@ -180,21 +185,49 @@
 
         <ol>
           <li><strong>Edit <code>.plansync/plan.json</code></strong> — Add, remove, or modify tasks. You can also regenerate it with <code>plansync plan</code> if using the LLM.</li>
-          <li><strong>Re-delegate with <code>--update</code></strong>:
+          <li><strong>Re-delegate</strong> — just run <code>plansync delegate</code> again. It automatically matches task IDs against existing Issues and intelligently updates GitHub:
             <div class="code-block">
-              <pre><code><span class="prompt">$</span> plansync delegate --update
+              <pre><code><span class="prompt">$</span> plansync delegate
 <span class="comment">  # Fetching existing Issues...</span>
 <span class="comment">  # ✓ Updated Issue #1 (T001: Set up auth)</span>
 <span class="comment">  # ✓ Created Issue #4 (T004: Write tests)</span>
 <span class="comment">  # ✓ Closed Issue #2 (T002: removed from plan)</span>
 <span class="comment">  # ✓ Committing and pushing...</span></code></pre>
             </div>
-            This intelligently updates GitHub: new tasks create new Issues, changed tasks update existing Issues, removed tasks close their Issues with a comment explaining removal.
+            New tasks create new Issues, changed tasks update existing Issues, removed tasks close their Issues with a comment explaining removal. No special flag needed — deduplication is always on.
           </li>
           <li><strong>Major rewrites</strong> — If you've made sweeping changes (reordered all tasks, changed scope structure), use <code>plansync clean</code> followed by a fresh <code>plansync delegate</code> for a clean slate.</li>
         </ol>
 
         <p><strong>Note:</strong> Only repository admins (owners) can run <code>plansync delegate</code>. Collaborators with push access can run <code>plansync sync</code> to lock their scope, but cannot delegate new plans.</p>
+
+        <h2 id="role-guide">Role-based guide</h2>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin:32px 0;">
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px;">
+            <h3 style="margin-bottom:8px;">Admin (Owner)</h3>
+            <ol style="padding-left:20px; display:flex; flex-direction:column; gap:12px;">
+              <li><strong>plansync init</strong> — authenticate, scaffold workflows and hooks</li>
+              <li><strong>Agent writes the plan</strong> — reads <code>AGENTS.md</code> → writes <code>.plansync/plan.json</code></li>
+              <li><strong>plansync delegate</strong> — push Issues, Project board, scope manifests to GitHub</li>
+              <li><strong>plansync sync</strong> — auto-detects admin, keeps all files writable, generates rich context</li>
+              <li><strong>Update plan:</strong> edit <code>plan.json</code> → <code>plansync delegate</code> again (dedup is automatic)</li>
+              <li><strong>plansync whoami</strong> — verify active GitHub identity</li>
+              <li><strong>plansync sync --supervisor</strong> — (optional) keep files writable + context only</li>
+            </ol>
+          </div>
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px;">
+            <h3 style="margin-bottom:8px;">Collaborator</h3>
+            <ol style="padding-left:20px; display:flex; flex-direction:column; gap:12px;">
+              <li><strong>git pull</strong> — post-merge hook runs <code>plansync sync</code> automatically</li>
+              <li><strong>plansync sync &lt;username&gt;</strong> — locks scope permissions, generates per-user context files</li>
+              <li><strong>plansync status</strong> — view your tasks with live Issue states</li>
+              <li><strong>If sync says "No plan found":</strong> ask admin to run <code>plansync delegate</code> first</li>
+              <li><strong>To write outside scope:</strong> <code>plansync sync --reset</code> restores all files to writable</li>
+              <li><strong>plansync whoami</strong> — check which identity you're authenticated as</li>
+            </ol>
+          </div>
+        </div>
 
         <h2 id="supervisor-mode">Supervisor mode for project owners</h2>
 
@@ -230,6 +263,7 @@
           <li><a href="#commands">All commands</a></li>
           <li><a href="#end-to-end">End-to-end example</a></li>
           <li><a href="#updating-plans">Updating plans</a></li>
+          <li><a href="#role-guide">Role-based guide</a></li>
           <li><a href="#supervisor-mode">Supervisor mode</a></li>
         </ul>
       </aside>

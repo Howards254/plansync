@@ -78,8 +78,8 @@ Walks the repo tree and applies `chmod`. Only files matching the user's assigned
 ### `plansync init`
 Authenticates with GitHub, scaffolds CI workflows and post-merge hook, writes `AGENTS.md` with planning instructions, writes admin planning instructions to `.plansync/admin-context.md` (committed), adds root context files to `.gitignore`.
 
-### `plansync delegate [--auto] [--update]`
-Reads `.plansync/plan.json`, fetches repo collaborators, shows a numbered reassignment menu. Only the repo admin can delegate (owner-only guard). Creates GitHub Issues, a Project board, scope manifests, saves assignments to plan.json, and commits/pushes. Use `--auto` for round-robin defaults. Use `--update` to re-delegate after modifying the plan.
+### `plansync delegate [--auto]`
+Reads `.plansync/plan.json`, fetches repo collaborators, shows a numbered reassignment menu. Only the repo admin can delegate (owner-only guard). Creates GitHub Issues, a Project board, scope manifests, saves assignments to plan.json, and commits/pushes. Re-delegation always deduplicates automatically — no special flag needed. Use `--auto` for round-robin defaults.
 
 ### `plansync sync [--user <name>] [--supervisor] [--reset]`
 Role-aware: auto-detects admin status via GitHub API.
@@ -89,6 +89,9 @@ Role-aware: auto-detects admin status via GitHub API.
 
 ### `plansync status`
 Prints the plan with live GitHub Issue states, blocking chains, and summary counts.
+
+### `plansync whoami`
+Prints your GitHub username and role (admin/collaborator). Identity resolved from `--user` flag, `PLANSYNC_USER` env var, or GitHub API token. Works without a token if `--user` or `PLANSYNC_USER` is set.
 
 ### `plansync clean`
 Removes all PlanSync files, hooks, markers, and gitignore entries.

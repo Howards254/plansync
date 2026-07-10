@@ -30,7 +30,7 @@ Yes — macOS, Linux, and Windows are all supported. Windows users should instal
 
 ## How do I update the plan after delegation?
 
-Edit `.plansync/plan.json` (or have your agent rewrite it), then run `plansync delegate --update`. This intelligently updates GitHub: new tasks create new Issues, changed tasks update existing Issues, removed tasks close their Issues. For major rewrites, use `plansync clean` followed by a fresh `plansync delegate`.
+Edit `.plansync/plan.json` (or have your agent rewrite it), then run `plansync delegate` again. It always deduplicates — matching task IDs against existing Issues. New tasks create new Issues, changed tasks update existing Issues, removed tasks close their Issues. For major rewrites, use `plansync clean` followed by a fresh `plansync delegate`.
 
 ## Can collaborators run `plansync delegate`?
 

@@ -123,10 +123,11 @@ PlanSync operates in four layers:
 | Command | Description |
 |---|---|
 | `plansync init` | Authenticate with GitHub, scaffold CI workflows and post-merge hook, write `AGENTS.md`, gitignore credentials |
-| `plansync delegate [--auto] [--update]` | Read `.plansync/plan.json` → numbered reassignment menu → create Issues, Project board, scope manifests → commit and push. Only repo admins can delegate. |
+| `plansync delegate [--auto]` | Read `.plansync/plan.json` → numbered reassignment menu → create Issues, Project board, scope manifests → commit and push. Only repo admins can delegate. Re-delegation always deduplicates. |
 | `plansync status` | Print plan with live GitHub Issue states, blocking chains, summary counts |
 | `plansync sync [--user <name>] [--reset] [--supervisor]` | Lock filesystem permissions + generate per-user context files at project root (agent auto-discovery) + `.plansync/context/<name>/` |
 | `plansync plan <description>` | (Optional) Draft a plan via LLM — requires an API key |
+| `plansync whoami` | Print your GitHub username and role (admin/collaborator). Resolved from `--user`, `PLANSYNC_USER`, or GitHub API. |
 | `plansync clean` | Remove all PlanSync traces from the project |
 
 Use `--help` on any command for full options.
@@ -134,7 +135,7 @@ Use `--help` on any command for full options.
 ### Delegate flags
 
 - `--auto` — Skip interactive reassignment menu, use round-robin defaults (still shows approval prompt)
-- `--update` — Update existing Issues instead of creating duplicates. Use this when you've modified the plan and want to re-delegate. New tasks create new Issues, changed tasks update existing Issues, removed tasks close their Issues.
+- `--update` — **(Deprecated)** Now the default. Delegate always deduplicates — no special flag needed. New tasks create new Issues, changed tasks update existing Issues, removed tasks close their Issues.
 
 ### Sync flags
 
@@ -150,11 +151,10 @@ Plans change. When you need to modify the plan after delegation:
 
 1. **Edit `.plansync/plan.json`** — Add, remove, or modify tasks. You can also regenerate it with `plansync plan` if using the LLM.
 
-2. **Re-delegate with `--update`**:
+2. **Re-delegate** — just run `plansync delegate` again. It automatically matches task IDs against existing Issues and intelligently updates GitHub:
    ```sh
-   plansync delegate --update
+   plansync delegate
    ```
-   This intelligently updates GitHub:
    - **New tasks** → create new Issues
    - **Changed tasks** → update existing Issue body, assignee, and labels
    - **Removed tasks** → close their Issues with a comment explaining removal
@@ -202,6 +202,8 @@ PlanSync uses **GitHub device flow** as the primary authentication method:
 
 **PAT fallback:** Paste a [Personal Access Token](https://github.com/settings/tokens/new) with `repo` and `project` scopes at the prompt instead.
 
+**Environment variable:** Set `PLANSYNC_GITHUB_TOKEN` — if present, it takes precedence over saved credentials and skips the interactive prompt entirely. Useful for CI or headless environments.
+
 **For collaborators (sync only):** Use `--user <name>` or `PLANSYNC_USER` environment variable. No token needed — scope enforcement is purely local filesystem permissions.
 
 ---
@@ -248,7 +250,7 @@ For **admins**: root `AGENTS.md` includes planning instructions, your assigned t
 
 **Can collaborators run `plansync delegate`?** No. Only repository admins (owners) can delegate plans. This prevents collaborators from accidentally overwriting the plan. Collaborators can run `plansync sync` to lock their scope and get context files.
 
-**What if I change my mind after delegating?** Edit `.plansync/plan.json` and run `plansync delegate --update`. This updates existing Issues instead of creating duplicates. For major rewrites, use `plansync clean` followed by a fresh `plansync delegate`.
+**What if I change my mind after delegating?** Edit `.plansync/plan.json` and run `plansync delegate` again. It always deduplicates — matching task IDs against existing Issues. For major rewrites, use `plansync clean` followed by a fresh `plansync delegate`.
 
 **Can the admin write to other people's tasks?** Yes. Use `plansync sync --supervisor` to keep all files writable while still getting your context files. This lets you oversee all tasks without scope restrictions.
 

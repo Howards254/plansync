@@ -91,7 +91,7 @@
           <li><strong>A GitHub repo</strong> — with a remote named <code>origin</code></li>
           <li><strong>Windows users:</strong> <a href="https://git-scm.com/download/win">Git for Windows</a> (includes Git Bash)</li>
         </ul>
-        <p>No API keys. No OAuth App registration. No environment variables. A built-in GitHub OAuth Client ID is included — device flow works out of the box.</p>
+        <p>No API keys. No OAuth App registration. No environment variables required (though you can set <code>PLANSYNC_GITHUB_TOKEN</code> if preferred). A built-in GitHub OAuth Client ID is included — device flow works out of the box.</p>
 
         <h2 id="platforms">Platform support</h2>
         <table>
@@ -109,7 +109,7 @@
           <li>Visit <code>github.com/login/device</code>, enter the code shown in terminal, click <strong>Authorize</strong></li>
           <li>PlanSync gets a token, saves it to <code>.plansync/config.json</code>, and adds it to <code>.gitignore</code></li>
         </ol>
-        <p>Prefer a token? Paste a <a href="https://github.com/settings/tokens/new">Personal Access Token</a> with <code>repo</code> and <code>project</code> scopes at the prompt instead.</p>
+        <p>Prefer a token? Paste a <a href="https://github.com/settings/tokens/new">Personal Access Token</a> with <code>repo</code> and <code>project</code> scopes at the prompt instead. You can also set <code>PLANSYNC_GITHUB_TOKEN</code> in your environment — if present, it takes precedence over saved credentials and skips the interactive prompt entirely.</p>
 
         <h2 id="next-steps">Next steps after init</h2>
         <p>Once <code>plansync init</code> completes, what you do next depends on whether you're starting fresh or adopting an existing project:</p>

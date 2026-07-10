@@ -41,14 +41,13 @@ plansync plan "Build a REST API with user auth"
 
 ---
 
-## `plansync delegate [--auto] [--update]`
+## `plansync delegate [--auto]`
 
 Write the approved plan to GitHub Issues, Project board, and scope manifests. Only repository admins can run this command.
 
 ```
 plansync delegate
 plansync delegate --auto
-plansync delegate --update
 ```
 
 **What it does:**
@@ -64,7 +63,8 @@ plansync delegate --update
 
 **Flags:**
 - `--auto` — Skip interactive reassignment menu, use round-robin defaults (approval prompt still shown)
-- `--update` — Re-delegate after modifying the plan. New tasks create new Issues, changed tasks update existing Issues, removed tasks close their Issues.
+
+Re-delegation after plan edits always deduplicates automatically — matching task IDs against existing Issues. No special flag needed.
 
 **Owner-only guard:** Checks GitHub API permissions — only repo admins can delegate. Collaborators are blocked with a message to ask the repo owner.
 
@@ -82,13 +82,14 @@ Displays a table of tasks with status, assignee, scope, live GitHub Issue state 
 
 ---
 
-## `plansync sync [--user <name>] [--supervisor] [--reset]`
+## `plansync sync [<username>] [--user <name>] [--supervisor] [--reset]`
 
 Generate per-user context files and apply scope permissions. Role-aware: auto-detects if you're the repo admin.
 
 ```
 plansync sync                      # admin auto-detect
-plansync sync --user janedoe       # collaborator
+plansync sync janedoe              # collaborator (positional)
+plansync sync --user janedoe       # collaborator (explicit flag)
 plansync sync --supervisor         # keep all files writable, only context
 plansync sync --reset              # restore all files to writable
 ```
@@ -118,6 +119,7 @@ plansync sync --reset              # restore all files to writable
 
 **Environment variables:**
 - `PLANSYNC_USER` — Set your GitHub username (takes precedence over API lookup)
+- `PLANSYNC_GITHUB_TOKEN` — GitHub token for authentication (takes precedence over config file and interactive prompt)
 
 ---
 
@@ -138,3 +140,20 @@ plansync clean
 - Removes PlanSync entries from `.gitignore`
 
 After running `clean`, you can start fresh with `plansync init`.
+
+---
+
+## `plansync whoami`
+
+Print your GitHub username and role (admin/collaborator).
+
+```
+plansync whoami
+```
+
+**What it does:**
+1. Resolves identity: `--user` flag > `PLANSYNC_USER` env > GitHub API token
+2. Checks your permission level via GitHub API
+3. Prints username and role
+
+Works without a token if `--user` or `PLANSYNC_USER` is set.

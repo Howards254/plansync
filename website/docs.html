@@ -92,9 +92,9 @@
 <span class="comment">  ✓ Post-merge hook installed (.git/hooks/post-merge)</span>
 <span class="comment">  ✓ AGENTS.md written</span></code></pre>
         </div>
-        <p>To use a PAT instead of the browser flow, paste the token at the prompt. The token needs <code>repo</code> and <code>project</code> scopes. Generate one at <a href="https://github.com/settings/tokens/new">github.com/settings/tokens/new</a>.</p>
+        <p>To use a PAT instead of the browser flow, paste the token at the prompt. The token needs <code>repo</code> and <code>project</code> scopes. Generate one at <a href="https://github.com/settings/tokens/new">github.com/settings/tokens/new</a>. You can also set the <code>PLANSYNC_GITHUB_TOKEN</code> environment variable — if present, it takes precedence over saved credentials.</p>
 
-        <h3 id="cmd-delegate"><code>plansync delegate [--auto] [--update]</code></h3>
+        <h3 id="cmd-delegate"><code>plansync delegate [--auto]</code></h3>
         <p>Reads <code>.plansync/plan.json</code> (written by your agent) and pushes it to GitHub as Issues, a Project v2 board, and scope manifests. Auto-distributes tasks round-robin to repo collaborators. Shows a numbered reassignment menu so you can move tasks between collaborators quickly before approving. Only repository admins (owners) can run this command.</p>
         <div class="code-block">
           <pre><code><span class="prompt">$</span> plansync delegate
@@ -118,9 +118,9 @@
         <p>Use <code>--auto</code> to skip the reassignment menu entirely and use round-robin defaults (the approval prompt is still shown). If a username is not a repo collaborator, the issue is created unassigned with a comment noting the intended assignee.</p>
         
         <h4>Updating existing plans</h4>
-        <p>When you modify the plan after delegation, use <code>--update</code> to intelligently update GitHub:</p>
+        <p>When you modify the plan after delegation, re-run <code>plansync delegate</code> — it automatically deduplicates by matching task IDs against existing Issues:</p>
         <div class="code-block">
-          <pre><code><span class="prompt">$</span> plansync delegate --update
+          <pre><code><span class="prompt">$</span> plansync delegate
 
 <span class="comment">  Fetching existing Issues...</span>
 <span class="comment">  ✓ Updated Issue #1 (T001: Set up auth)</span>
@@ -128,7 +128,7 @@
 <span class="comment">  ✓ Closed Issue #2 (T002: removed from plan)</span>
 <span class="comment">  ✓ Committing and pushing...</span></code></pre>
         </div>
-        <p>New tasks create new Issues, changed tasks update existing Issues, and removed tasks close their Issues with a comment explaining the removal.</p>
+        <p>New tasks create new Issues, changed tasks update existing Issues, and removed tasks close their Issues with a comment explaining the removal. No special flag needed — deduplication is always on.</p>
 
         <h3 id="cmd-status"><code>plansync status</code></h3>
         <p>Prints the plan alongside live GitHub Issue states. Shows each task's status (ready / in progress / done / blocked), assigned user, scope globs, Issue number, and blocking dependency chains. Ends with a summary count.</p>
@@ -142,7 +142,7 @@
   Summary: 3 total · 2 ready · 1 blocked · 0 in progress · 0 done</span></code></pre>
         </div>
 
-        <h3 id="cmd-sync"><code>plansync sync [--user &lt;name&gt;] [--supervisor]</code></h3>
+        <h3 id="cmd-sync"><code>plansync sync [&lt;username&gt;] [--user &lt;name&gt;] [--supervisor] [--reset]</code></h3>
         <p>PlanSync auto-detects whether you're the repo admin or a collaborator, and generates the right context for your role. Username is resolved via <code>--user</code> flag, <code>PLANSYNC_USER</code> env var, or auto-detected from the GitHub token.</p>
         
         <h4>As a collaborator</h4>
@@ -215,6 +215,17 @@
 <span class="comment">  ✓ Plan saved to .plansync/plan.json</span></code></pre>
         </div>
 
+        <h3 id="cmd-whoami"><code>plansync whoami</code></h3>
+        <p>Prints the currently authenticated GitHub username and checks whether you're a repo admin or collaborator. Useful for verifying identity before running other commands.</p>
+        <div class="code-block">
+          <pre><code><span class="prompt">$</span> plansync whoami
+
+<span class="comment">  Authenticated as: howards254</span>
+<span class="comment">  Role: Admin (owner)</span>
+<span class="comment">  Resolved via: GitHub API token</span></code></pre>
+        </div>
+        <p>Identity is resolved from <code>--user</code> flag, <code>PLANSYNC_USER</code> env var, or the GitHub token in config. Runs without a token too — uses the <code>--user</code> flag or <code>PLANSYNC_USER</code> env var if no token is available.</p>
+
         <h3 id="cmd-clean"><code>plansync clean</code></h3>
         <p>Completely removes PlanSync from a project. Deletes the <code>.plansync/</code> directory, removes workflow files (<code>scope-check.yml</code>, <code>silence-detection.yml</code>), the post-merge hook, and <code>PROJECT_PLAN.md</code>. Strips all <code>&lt;!-- plansync --&gt;</code> / <code>&lt;!-- end-plansync --&gt;</code> blocks from context files. Removes <code>.plansync/config.json</code> from <code>.gitignore</code>. After running <code>clean</code>, you can start fresh with <code>plansync init</code>.</p>
         <div class="code-block">
@@ -281,6 +292,7 @@
           <li><a href="#cmd-status"><code>status</code></a></li>
           <li><a href="#cmd-sync"><code>sync</code></a></li>
           <li><a href="#cmd-plan"><code>plan</code></a></li>
+          <li><a href="#cmd-whoami"><code>whoami</code></a></li>
           <li><a href="#cmd-clean"><code>clean</code></a></li>
           <li><a href="#architecture">Architecture</a></li>
           <li><a href="#context-files">Context files</a></li>
