@@ -1,6 +1,14 @@
 # Changelog
 
-## 0.3.5 — 2026-07-03
+## 0.4.0 — 2026-07-10
+
+- **Delegate always deduplicates** — `plansync delegate` now always checks for existing Issues before creating new ones. The `--update` flag is deprecated (was the old opt-in for this behavior). Duplicate Issues will no longer be created even during testing. Removed tasks are automatically closed.
+- **`plansync whoami`** — New command that prints the resolved GitHub username. Useful for coding agents to self-identify: reads from `--user` flag, `PLANSYNC_USER` env var, or GitHub API token.
+- **Agent identity clarity** — All context file templates now explicitly state "You are **{{username}}**" at the top so agents immediately know their identity and which tasks belong to them.
+- **`plansync sync <username>`** — Accepts positional argument as alternative to `--user` flag. Both `plansync sync calebomondi` and `plansync sync --user calebomondi` work.
+- **`PLANSYNC_GITHUB_TOKEN` env var** — Set this env var instead of running `plansync init`. All commands pick it up automatically. Useful for non-interactive/CI environments.
+- **Better error messages** — "No plan found" now directs collaborators to ask the admin to delegate. 404 OAuth errors suggest PAT or env var workaround.
+- **Better no-plan error for collaborators** — sync now says "ask the admin to run delegate first" instead of "run plansync plan".
 
 - **Auto-detect admin in sync** — `plansync sync` now detects if you're the repo admin via GitHub API. Admins get a rich context including planning instructions, their assigned tasks, AND an all-tasks overview table showing every collaborator's assignments.
 - **Admin context at root** — Admin's root `AGENTS.md` now contains: planning instructions, their own tasks, and a full overview table of all tasks/assignees. Agents auto-discover this — zero configuration.

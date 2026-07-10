@@ -35,49 +35,64 @@ async function init() {
   // --- Authentication ---
   const clientId = github.getClientId(cfg);
 
-  console.log('PlanSync needs permission to manage your repo on GitHub.');
-  console.log();
-
-  const answer = await ask('Press Enter to authenticate in your browser, or paste a Personal Access Token: ');
-
   let token;
   let username;
 
-  if (answer) {
-    // PAT flow
-    token = answer;
-    console.log('\nVerifying token...');
+  // Check PLANSYNC_GITHUB_TOKEN env var first (for CI/non-interactive use)
+  if (process.env.PLANSYNC_GITHUB_TOKEN) {
+    token = process.env.PLANSYNC_GITHUB_TOKEN;
+    console.log('\nVerifying token from PLANSYNC_GITHUB_TOKEN...');
     try {
       username = await github.verifyPAT(token);
       console.log(`Authenticated as: ${username}`);
     } catch (err) {
       console.error(`Invalid token: ${err.message}`);
-      console.error('Generate a new token at https://github.com/settings/tokens/new');
       process.exit(1);
     }
   } else {
-    // Device flow
-    if (!clientId) {
-      console.error('No Client ID available. Create one at https://github.com/settings/developers');
-      console.error('or paste a Personal Access Token instead.');
-      process.exit(1);
-    }
+    console.log('PlanSync needs permission to manage your repo on GitHub.');
+    console.log();
 
-    try {
-      token = await github.authenticateWithDialog(clientId);
-      username = await github.verifyPAT(token);
-      console.log(`Authenticated as: ${username}`);
-    } catch (err) {
-      if (err.message === 'Authentication cancelled.') {
-        console.log('Cancelled.');
-      } else if (err.status === 404) {
-        console.error('Authentication failed: invalid Client ID.');
-      } else if (err.status === 401) {
-        console.error('Authentication failed: the code was denied or expired.');
-      } else {
-        console.error(`Authentication failed: ${err.message}`);
+    const answer = await ask('Press Enter to authenticate in your browser, or paste a Personal Access Token: ');
+
+    if (answer) {
+      // PAT flow
+      token = answer;
+      console.log('\nVerifying token...');
+      try {
+        username = await github.verifyPAT(token);
+        console.log(`Authenticated as: ${username}`);
+      } catch (err) {
+        console.error(`Invalid token: ${err.message}`);
+        console.error('Generate a new token at https://github.com/settings/tokens/new');
+        process.exit(1);
       }
-      process.exit(1);
+    } else {
+      // Device flow
+      if (!clientId) {
+        console.error('No Client ID available. Create one at https://github.com/settings/developers');
+        console.error('or paste a Personal Access Token instead.');
+        process.exit(1);
+      }
+
+      try {
+        token = await github.authenticateWithDialog(clientId);
+        username = await github.verifyPAT(token);
+        console.log(`Authenticated as: ${username}`);
+      } catch (err) {
+        if (err.message === 'Authentication cancelled.') {
+          console.log('Cancelled.');
+        } else if (err.status === 404) {
+          console.error('Authentication failed: GitHub OAuth App not found.');
+          console.error('The built-in Client ID may have been disabled. Set PLANSYNC_GITHUB_TOKEN or paste a PAT as a workaround.');
+          console.error('Generate a PAT at https://github.com/settings/tokens/new (scopes: repo, project)');
+        } else if (err.status === 401) {
+          console.error('Authentication failed: the code was denied or expired.');
+        } else {
+          console.error(`Authentication failed: ${err.message}`);
+        }
+        process.exit(1);
+      }
     }
   }
 

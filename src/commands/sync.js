@@ -28,7 +28,9 @@ async function sync() {
 
   const planPath = path.join(root, '.plansync', 'plan.json');
   if (!fs.existsSync(planPath)) {
-    console.error('No plan found at %s. Run `plansync plan` first.', planPath);
+    console.error('No plan found at %s.', planPath);
+    console.error('If you are a collaborator, ask the repo admin to run `plansync delegate` first.');
+    console.error('If you are the admin, have your coding agent read AGENTS.md and write the plan.');
     process.exit(1);
   }
 

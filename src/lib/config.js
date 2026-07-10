@@ -19,8 +19,15 @@ function findRoot() {
 
 function read(root) {
   const p = configPath(root);
-  if (!fs.existsSync(p)) return {};
-  return JSON.parse(fs.readFileSync(p, 'utf-8'));
+  let cfg = {};
+  if (fs.existsSync(p)) {
+    cfg = JSON.parse(fs.readFileSync(p, 'utf-8'));
+  }
+  // PLANSYNC_GITHUB_TOKEN env var overrides file config
+  if (process.env.PLANSYNC_GITHUB_TOKEN) {
+    cfg.githubToken = process.env.PLANSYNC_GITHUB_TOKEN;
+  }
+  return cfg;
 }
 
 function write(root, data) {

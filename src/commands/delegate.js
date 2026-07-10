@@ -196,20 +196,16 @@ function buildIssueBody(task) {
   return bodyParts.join('\n\n');
 }
 
-async function createOrUpdateIssues(plan, assignments, octokit, owner, repo, updateMode) {
+async function createOrUpdateIssues(plan, assignments, octokit, owner, repo) {
   const issues = {};
-  let existingIssues = {};
-
-  if (updateMode) {
-    console.log('  Fetching existing issues for update...');
-    existingIssues = await fetchExistingIssues(octokit, owner, repo);
-  }
+  console.log('  Fetching existing issues...');
+  const existingIssues = await fetchExistingIssues(octokit, owner, repo);
 
   for (const task of plan.tasks) {
     const body = buildIssueBody(task);
     const assignee = assignments[task.id] || undefined;
 
-    if (updateMode && existingIssues[task.id]) {
+    if (existingIssues[task.id]) {
       const existing = existingIssues[task.id];
       try {
         await octokit.issues.update({
@@ -298,26 +294,25 @@ async function createOrUpdateIssues(plan, assignments, octokit, owner, repo, upd
     }
   }
 
-  if (updateMode) {
-    for (const [taskId, existing] of Object.entries(existingIssues)) {
-      if (!plan.tasks.find(t => t.id === taskId) && existing.state === 'open') {
-        try {
-          await octokit.issues.update({
-            owner,
-            repo,
-            issue_number: existing.number,
-            state: 'closed',
-          });
-          await octokit.issues.createComment({
-            owner,
-            repo,
-            issue_number: existing.number,
-            body: 'Task removed from plan during re-delegate.',
-          });
-          console.log('  Closed issue #%d for removed task %s', existing.number, taskId);
-        } catch (err) {
-          console.error('  Failed to close removed issue #%d: %s', existing.number, err.message);
-        }
+  // Close issues for tasks removed from the plan
+  for (const [taskId, existing] of Object.entries(existingIssues)) {
+    if (!plan.tasks.find(t => t.id === taskId) && existing.state === 'open') {
+      try {
+        await octokit.issues.update({
+          owner,
+          repo,
+          issue_number: existing.number,
+          state: 'closed',
+        });
+        await octokit.issues.createComment({
+          owner,
+          repo,
+          issue_number: existing.number,
+          body: 'Task removed from plan during re-delegate.',
+        });
+        console.log('  Closed issue #%d for removed task %s', existing.number, taskId);
+      } catch (err) {
+        console.error('  Failed to close removed issue #%d: %s', existing.number, err.message);
       }
     }
   }
@@ -493,7 +488,7 @@ function commitAndPush(root, message, usePr) {
   }
 }
 
-async function delegate(autoMode, updateMode) {
+async function delegate(autoMode) {
   const root = config.findRoot();
   const cfg = config.read(root);
 
@@ -544,9 +539,9 @@ async function delegate(autoMode, updateMode) {
   // Get assignments
   const assignments = await getAssignments(plan, octokit, owner, repo, authUsername, autoMode);
 
-  // Create or update GitHub Issues
-  console.log(updateMode ? '\nUpdating GitHub Issues...' : '\nCreating GitHub Issues...');
-  const issues = await createOrUpdateIssues(plan, assignments, octokit, owner, repo, updateMode);
+  // Create or update GitHub Issues (always deduplicates — no more duplicate issues)
+  console.log('\nSyncing plan to GitHub Issues...');
+  const issues = await createOrUpdateIssues(plan, assignments, octokit, owner, repo);
 
   // Create Project board
   await createProjectBoard(plan, assignments, issues, octokit, owner, repo);
@@ -585,7 +580,7 @@ async function delegate(autoMode, updateMode) {
   }
 
   // Commit and push
-  commitAndPush(root, `plansync: ${updateMode ? 'update' : 'delegate'} plan — ${plan.title}`, false);
+  commitAndPush(root, `plansync: delegate plan — ${plan.title}`, false);
 
   console.log('\nDone! Plan delegated to %s/%s.', owner, repo);
   console.log('Collaborators: run `plansync sync --user <username>` to generate context files and apply scope permissions.');

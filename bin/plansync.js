@@ -7,13 +7,14 @@ const delegateCmd = require('../src/commands/delegate');
 const statusCmd = require('../src/commands/status');
 const syncCmd = require('../src/commands/sync');
 const cleanCmd = require('../src/commands/clean');
+const whoamiCmd = require('../src/commands/whoami');
 
 const program = new Command();
 
 program
   .name('plansync')
   .description('Coordination and accountability layer for AI-assisted development teams')
-  .version('0.1.0');
+  .version('0.4.0');
 
 program
   .command('init')
@@ -40,9 +41,9 @@ program
   .command('delegate')
   .description('Write the approved plan to GitHub Issues and Projects')
   .option('--auto', 'Skip interactive reassignment, use round-robin defaults (still shows approval prompt)')
-  .option('--update', 'Update existing issues instead of creating duplicates (re-delegate)')
+  .option('--update', '(Deprecated) Now the default — delegate always updates existing issues')
   .action((opts) => {
-    delegateCmd(opts.auto || false, opts.update || false).catch(err => {
+    delegateCmd(opts.auto || false).catch(err => {
       console.error(err.message);
       process.exit(1);
     });
@@ -59,13 +60,14 @@ program
   });
 
 program
-  .command('sync')
+  .command('sync [username]')
   .description('Recompute and reapply read-only file permissions for your assigned scope')
-  .option('--user <username>', 'GitHub username (auto-detected if omitted)')
+  .option('--user <username>', 'GitHub username (overrides positional argument)')
   .option('--reset', 'Reset all files to writable (undo previous sync)')
   .option('--supervisor', 'Supervisor mode: keep all files writable, only generate context files')
-  .action((opts) => {
+  .action((username, opts) => {
     if (opts.user) process.env.PLANSYNC_USER = opts.user;
+    else if (username) process.env.PLANSYNC_USER = username;
     if (opts.reset) process.env.PLANSYNC_RESET = '1';
     if (opts.supervisor) process.env.PLANSYNC_SUPERVISOR = '1';
     syncCmd().catch(err => {
@@ -79,6 +81,18 @@ program
   .description('Remove all PlanSync files and markers from the project')
   .action(() => {
     cleanCmd().catch(err => {
+      console.error(err.message);
+      process.exit(1);
+    });
+  });
+
+program
+  .command('whoami')
+  .description('Print your synced GitHub username')
+  .option('--user <username>', 'Specify username directly')
+  .action((opts) => {
+    if (opts.user) process.env.PLANSYNC_USER = opts.user;
+    whoamiCmd().catch(err => {
       console.error(err.message);
       process.exit(1);
     });
